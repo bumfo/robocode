@@ -200,9 +200,7 @@ class Repository implements IRepository {
 				removeItemsFromRoot(root);
 			}
 		}
-
-//		repositoryItems.putAll(removedItems);
-
+	
 		// Set the new roots
 		roots = newRoots;
 
