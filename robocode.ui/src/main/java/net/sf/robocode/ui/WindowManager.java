@@ -165,7 +165,7 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public String showBattleOpenDialog(final String defExt, final String name) {
-		FileDialog dialog = new FileDialog(getRobocodeFrame());
+		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, FileDialog.LOAD);
 
 		dialog.setFilenameFilter(new FilenameFilter() {
 			@Override
@@ -175,7 +175,6 @@ public class WindowManager implements IWindowManagerExt {
 			}
 		});
 
-		dialog.setName(name);
 		dialog.setDirectory(battleManager.getBattlePath());
 
 		dialog.setVisible(true);
