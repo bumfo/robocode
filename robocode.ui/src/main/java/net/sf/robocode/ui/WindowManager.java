@@ -165,7 +165,11 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public String showBattleOpenDialog(final String defExt, final String name) {
-		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, FileDialog.LOAD);
+		return showNativeDialog(defExt, name, FileDialog.LOAD);
+	}
+
+	private String showNativeDialog(final String defExt, String name, int mode) {
+		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, mode);
 
 		dialog.setFilenameFilter(new FilenameFilter() {
 			@Override
@@ -211,6 +215,24 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public String saveBattleDialog(String path, final String defExt, final String name) {
+		String result = showNativeDialog(defExt, name, FileDialog.SAVE);
+
+		if (result != null) {
+			int idx = result.lastIndexOf('.');
+			String extension = "";
+
+			if (idx > 0) {
+				extension = result.substring(idx);
+			}
+			if (!(extension.equalsIgnoreCase(defExt))) {
+				result += defExt;
+			}
+		}
+
+		return result;
+	}
+
+	public String saveBattleDialogLegacy(String path, final String defExt, final String name) {
 		File f = new File(path);
 
 		JFileChooser chooser;
