@@ -239,7 +239,7 @@ public class WindowManager implements IWindowManagerExt {
 
 		chooser = new JFileChooser(f);
 
-		javax.swing.filechooser.FileFilter filter = new javax.swing.filechooser.FileFilter() {
+		FileFilter filter = new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
 				return pathname.isDirectory()
