@@ -165,10 +165,10 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public String showBattleOpenDialog(final String defExt, final String name) {
-		return showNativeDialog(defExt, name, FileDialog.LOAD);
+		return showNativeDialog(defExt, name, FileDialog.LOAD, battleManager.getBattlePath(), null);
 	}
 
-	private String showNativeDialog(final String defExt, String name, int mode) {
+	private String showNativeDialog(final String defExt, String name, int mode, String directory, String file) {
 		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, mode);
 
 		dialog.setFilenameFilter(new FilenameFilter() {
@@ -179,7 +179,8 @@ public class WindowManager implements IWindowManagerExt {
 			}
 		});
 
-		dialog.setDirectory(battleManager.getBattlePath());
+		dialog.setDirectory(directory);
+		dialog.setFile(file);
 
 		dialog.setVisible(true);
 
@@ -188,6 +189,24 @@ public class WindowManager implements IWindowManagerExt {
 		} else {
 			return dialog.getDirectory() + dialog.getFile();
 		}
+	}
+
+	public String saveBattleDialog(String path, final String defExt, final String name) {
+		String result = showNativeDialog(defExt, name, FileDialog.SAVE, path, null);
+
+		if (result != null) {
+			int idx = result.lastIndexOf('.');
+			String extension = "";
+
+			if (idx > 0) {
+				extension = result.substring(idx);
+			}
+			if (!(extension.equalsIgnoreCase(defExt))) {
+				result += defExt;
+			}
+		}
+
+		return result;
 	}
 
 	public String showBattleOpenDialogLegacy(final String defExt, final String name) {
@@ -212,24 +231,6 @@ public class WindowManager implements IWindowManagerExt {
 			return chooser.getSelectedFile().getPath();
 		}
 		return null;
-	}
-
-	public String saveBattleDialog(String path, final String defExt, final String name) {
-		String result = showNativeDialog(defExt, name, FileDialog.SAVE);
-
-		if (result != null) {
-			int idx = result.lastIndexOf('.');
-			String extension = "";
-
-			if (idx > 0) {
-				extension = result.substring(idx);
-			}
-			if (!(extension.equalsIgnoreCase(defExt))) {
-				result += defExt;
-			}
-		}
-
-		return result;
 	}
 
 	public String saveBattleDialogLegacy(String path, final String defExt, final String name) {
