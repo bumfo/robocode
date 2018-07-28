@@ -4,7 +4,19 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>robocode.ui</artifactId>
 	<name>Robocode UI</name>
-	<parent>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <parent>
 		<artifactId>robocode</artifactId>
 		<groupId>net.sf.robocode</groupId>
 		<version>1.9.3.4-my</version>
