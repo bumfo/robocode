@@ -169,15 +169,19 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	private String showNativeDialog(final String defExt, String name, int mode, String directory, String file) {
-		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, mode);
-
-		dialog.setFilenameFilter(new FilenameFilter() {
+		return showNativeDialog(name, mode, directory, file, new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 				return name.toLowerCase().lastIndexOf(defExt.toLowerCase())
 						== name.length() - defExt.length();
 			}
 		});
+	}
+
+	private String showNativeDialog(String name, int mode, String directory, String file, FilenameFilter filter) {
+		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, mode);
+
+		dialog.setFilenameFilter(filter);
 
 		dialog.setDirectory(directory);
 		dialog.setFile(file);
@@ -434,6 +438,30 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public void showImportRobotDialog() {
+		String path = showNativeDialog("Select the robot .jar file to copy to " + repositoryManager.getRobotsDirectory(),
+				FileDialog.LOAD, null, null,
+				new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String name) {
+						if (name.equals("robocode.jar")) {
+							return false;
+						}
+						int idx = name.lastIndexOf('.');
+
+						String extension = "";
+
+						if (idx >= 0) {
+							extension = name.substring(idx);
+						}
+						return extension.equalsIgnoreCase(".jar") || extension.equalsIgnoreCase(".zip");
+					}
+				});
+		if (path != null) {
+			doImportRobot(new File(path));
+		}
+	}
+
+	public void showImportRobotDialogLegacy() {
 		JFileChooser chooser = new JFileChooser();
 
 		chooser.setFileFilter(new FileFilter() {
@@ -470,42 +498,46 @@ public class WindowManager implements IWindowManagerExt {
 
 		if (chooser.showDialog(getRobocodeFrame(), "Import") == JFileChooser.APPROVE_OPTION) {
 			File inputFile = chooser.getSelectedFile();
-			String fileName = inputFile.getName();
-			String extension = "";
+			doImportRobot(inputFile);
+		}
+	}
 
-			int idx = fileName.lastIndexOf('.');
+	private void doImportRobot(File inputFile) {
+		String fileName = inputFile.getName();
+		String extension = "";
 
-			if (idx >= 0) {
-				extension = fileName.substring(idx);
-			}
-			if (!extension.equalsIgnoreCase(".jar")) {
-				fileName += ".jar";
-			}
-			File outputFile = new File(repositoryManager.getRobotsDirectory(), fileName);
+		int idx = fileName.lastIndexOf('.');
 
-			if (inputFile.equals(outputFile)) {
-				JOptionPane.showMessageDialog(getRobocodeFrame(),
-						outputFile.getName() + " is already in the robots directory!");
+		if (idx >= 0) {
+			extension = fileName.substring(idx);
+		}
+		if (!extension.equalsIgnoreCase(".jar")) {
+			fileName += ".jar";
+		}
+		File outputFile = new File(repositoryManager.getRobotsDirectory(), fileName);
+
+		if (inputFile.equals(outputFile)) {
+			JOptionPane.showMessageDialog(getRobocodeFrame(),
+					outputFile.getName() + " is already in the robots directory!");
+			return;
+		}
+		if (outputFile.exists()) {
+			if (JOptionPane.showConfirmDialog(getRobocodeFrame(), outputFile + " already exists.  Overwrite?",
+					"Warning", JOptionPane.YES_NO_OPTION)
+					== JOptionPane.NO_OPTION) {
 				return;
 			}
-			if (outputFile.exists()) {
-				if (JOptionPane.showConfirmDialog(getRobocodeFrame(), outputFile + " already exists.  Overwrite?",
-						"Warning", JOptionPane.YES_NO_OPTION)
-						== JOptionPane.NO_OPTION) {
-					return;
-				}
-			}
-			if (JOptionPane.showConfirmDialog(getRobocodeFrame(),
-					"Robocode will now copy " + inputFile.getName() + " to " + outputFile.getParent(), "Import robot",
-					JOptionPane.OK_CANCEL_OPTION)
-					== JOptionPane.OK_OPTION) {
-				try {
-					FileUtil.copy(inputFile, outputFile);
-					repositoryManager.refresh();
-					JOptionPane.showMessageDialog(getRobocodeFrame(), "Robot imported successfully.");
-				} catch (IOException e) {
-					JOptionPane.showMessageDialog(getRobocodeFrame(), "Import failed: " + e);
-				}
+		}
+		if (JOptionPane.showConfirmDialog(getRobocodeFrame(),
+				"Robocode will now copy " + inputFile.getName() + " to " + outputFile.getParent(), "Import robot",
+				JOptionPane.OK_CANCEL_OPTION)
+				== JOptionPane.OK_OPTION) {
+			try {
+				FileUtil.copy(inputFile, outputFile);
+				repositoryManager.refresh();
+				JOptionPane.showMessageDialog(getRobocodeFrame(), "Robot imported successfully.");
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(getRobocodeFrame(), "Import failed: " + e);
 			}
 		}
 	}
