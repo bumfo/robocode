@@ -18,8 +18,8 @@ import net.sf.robocode.repository.IRepositoryManager;
 import net.sf.robocode.settings.ISettingsManager;
 import net.sf.robocode.ui.battle.AwtBattleAdaptor;
 import net.sf.robocode.ui.dialog.*;
-import net.sf.robocode.ui.packager.RobotPackager;
 import net.sf.robocode.ui.editor.IRobocodeEditor;
+import net.sf.robocode.ui.packager.RobotPackager;
 import net.sf.robocode.version.IVersionManager;
 import robocode.control.events.BattleCompletedEvent;
 import robocode.control.events.IBattleListener;
@@ -29,6 +29,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Locale;
 
@@ -145,7 +146,7 @@ public class WindowManager implements IWindowManagerExt {
 		if (iconified) {
 			frame.setState(Frame.ICONIFIED);
 		}
-		
+
 		if (visible) {
 			// Pack frame to size all components
 			WindowUtil.packCenterShow(frame);
@@ -164,22 +165,45 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public String showBattleOpenDialog(final String defExt, final String name) {
+		FileDialog dialog = new FileDialog(getRobocodeFrame());
+
+		dialog.setFilenameFilter(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.toLowerCase().lastIndexOf(defExt.toLowerCase())
+						== name.length() - defExt.length();
+			}
+		});
+
+		dialog.setName(name);
+		dialog.setDirectory(battleManager.getBattlePath());
+
+		dialog.setVisible(true);
+
+		if (dialog.getFile() == null) {
+			return null;
+		} else {
+			return dialog.getDirectory() + dialog.getFile();
+		}
+	}
+
+	public String showBattleOpenDialogLegacy(final String defExt, final String name) {
 		JFileChooser chooser = new JFileChooser(battleManager.getBattlePath());
 
 		chooser.setFileFilter(
 				new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				return pathname.isDirectory()
-						|| pathname.getName().toLowerCase().lastIndexOf(defExt.toLowerCase())
+					@Override
+					public boolean accept(File pathname) {
+						return pathname.isDirectory()
+								|| pathname.getName().toLowerCase().lastIndexOf(defExt.toLowerCase())
 								== pathname.getName().length() - defExt.length();
-			}
+					}
 
-			@Override
-			public String getDescription() {
-				return name;
-			}
-		});
+					@Override
+					public String getDescription() {
+						return name;
+					}
+				});
 
 		if (chooser.showOpenDialog(getRobocodeFrame()) == JFileChooser.APPROVE_OPTION) {
 			return chooser.getSelectedFile().getPath();
@@ -199,7 +223,7 @@ public class WindowManager implements IWindowManagerExt {
 			public boolean accept(File pathname) {
 				return pathname.isDirectory()
 						|| pathname.getName().toLowerCase().lastIndexOf(defExt.toLowerCase())
-								== pathname.getName().length() - defExt.length();
+						== pathname.getName().length() - defExt.length();
 			}
 
 			@Override
@@ -234,7 +258,7 @@ public class WindowManager implements IWindowManagerExt {
 	public void showHelpApi() {
 		showInBrowser(
 				"file://" + new File(FileUtil.getCwd(), "").getAbsoluteFile() + File.separator + "javadoc" + File.separator
-				+ "index.html");
+						+ "index.html");
 	}
 
 	public void showReadMe() {
@@ -526,6 +550,7 @@ public class WindowManager implements IWindowManagerExt {
 
 	/**
 	 * Packs, centers, and shows the specified window on the screen.
+	 *
 	 * @param window the window to pack, center, and show
 	 * @param center {@code true} if the window must be centered; {@code false} otherwise
 	 */
