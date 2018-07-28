@@ -195,7 +195,7 @@ public class WindowManager implements IWindowManagerExt {
 		}
 	}
 
-	private String[] showNativeDialogMultipleFile(String name, int mode, String directory, String file, FilenameFilter filter) {
+	private File[] showNativeDialogMultipleFile(String name, int mode, String directory, String file, FilenameFilter filter) {
 		FileDialog dialog = new FileDialog(getRobocodeFrame(), name, mode);
 
 		dialog.setFilenameFilter(filter);
@@ -211,11 +211,7 @@ public class WindowManager implements IWindowManagerExt {
 		if (files.length == 0) {
 			return null;
 		} else {
-			String[] result = new String[files.length];
-			for (int i = 0; i < files.length; i++) {
-				result[i] = dialog.getDirectory() + files[i];
-			}
-			return result;
+			return files;
 		}
 	}
 
@@ -462,7 +458,7 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	public void showImportRobotDialog() {
-		String[] paths = showNativeDialogMultipleFile("Select the robot .jar file to copy to " + repositoryManager.getRobotsDirectory(),
+		File[] files = showNativeDialogMultipleFile("Select the robot .jar file to copy to " + repositoryManager.getRobotsDirectory(),
 				FileDialog.LOAD, null, null,
 				new FilenameFilter() {
 					@Override
@@ -480,9 +476,9 @@ public class WindowManager implements IWindowManagerExt {
 						return extension.equalsIgnoreCase(".jar") || extension.equalsIgnoreCase(".zip");
 					}
 				});
-		if (paths != null) {
-			for (String path : paths) {
-				doImportRobot(new File(path));
+		if (files != null) {
+			for (File file : files) {
+				doImportRobot(file);
 			}
 		}
 	}
