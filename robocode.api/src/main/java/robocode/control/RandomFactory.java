@@ -12,6 +12,7 @@ import static net.sf.robocode.io.Logger.logError;
 import static net.sf.robocode.io.Logger.logWarning;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Random;
 
 
@@ -38,6 +39,70 @@ public class RandomFactory {
 		return isDeterministic;
 	}
 
+	private static void withRandomField(FieldConsumer<Field> consumer, boolean write) throws NotSupportedException, IllegalAccessException {
+		Math.random();
+
+		try {
+			final Field field = Math.class.getDeclaredField("randomNumberGenerator");
+			final boolean savedFieldAccessible = field.isAccessible();
+
+			field.setAccessible(true);
+			try {
+				consumer.accept(field);
+			} finally {
+				field.setAccessible(savedFieldAccessible);
+			}
+		} catch (NoSuchFieldException e) {
+			try {
+				final Class<?> clazz = Class.forName("java.lang.Math$RandomNumberGeneratorHolder");
+				final Field field = clazz.getDeclaredField("randomNumberGenerator");
+
+				final boolean savedFieldAccessible = field.isAccessible();
+
+				field.setAccessible(true);
+				try {
+					if (!write) {
+						consumer.accept(field);
+					} else {
+						writeFinalField(field, consumer);
+					}
+
+				} finally {
+					field.setAccessible(savedFieldAccessible);
+				}
+			} catch (ClassNotFoundException e1) {
+				throw new NotSupportedException();
+			} catch (NoSuchFieldException e1) {
+				throw new NotSupportedException();
+			}
+		}
+	}
+
+	private static void writeFinalField(Field field, FieldConsumer<Field> consumer) {
+		try {
+			Field modifiersField = Field.class.getDeclaredField("modifiers");
+
+			final boolean savedModifiersAccessible = modifiersField.isAccessible();
+			modifiersField.setAccessible(true);
+			try {
+				int oldModifiers = field.getModifiers();
+				try {
+					modifiersField.setInt(field, oldModifiers & ~Modifier.FINAL);
+
+					consumer.accept(field);
+				} finally {
+					modifiersField.setInt(field, oldModifiers);
+				}
+			} finally {
+				modifiersField.setAccessible(savedModifiersAccessible);
+			}
+		} catch (IllegalAccessException ex) {
+			ex.printStackTrace();
+		} catch (NoSuchFieldException ex) {
+			ex.printStackTrace();
+		}
+	}
+
 	/**
 	 * Returns the random number generator used for generating a stream of
 	 * random numbers.
@@ -48,14 +113,13 @@ public class RandomFactory {
 	public static Random getRandom() {
 		if (randomNumberGenerator == null) {
 			try {
-				Math.random();
-				final Field field = Math.class.getDeclaredField("randomNumberGenerator");
-				final boolean savedFieldAccessible = field.isAccessible();
-
-				field.setAccessible(true);
-				randomNumberGenerator = (Random) field.get(null);
-				field.setAccessible(savedFieldAccessible);
-			} catch (NoSuchFieldException e) {
+				withRandomField(new FieldConsumer<Field>() {
+					@Override
+					public void accept(Field field) throws IllegalAccessException {
+						randomNumberGenerator = (Random) field.get(null);
+					}
+				}, false);
+			} catch (NotSupportedException e) {
 				logWarningNotSupported();
 				randomNumberGenerator = new Random();
 			} catch (IllegalAccessException e) {
@@ -76,14 +140,13 @@ public class RandomFactory {
 	public static void setRandom(Random random) {
 		randomNumberGenerator = random;
 		try {
-			Math.random();
-			final Field field = Math.class.getDeclaredField("randomNumberGenerator");
-			final boolean savedFieldAccessible = field.isAccessible();
-
-			field.setAccessible(true);
-			field.set(null, randomNumberGenerator);
-			field.setAccessible(savedFieldAccessible);
-		} catch (NoSuchFieldException e) {
+			withRandomField(new FieldConsumer<Field>() {
+				@Override
+				public void accept(Field field) throws IllegalAccessException {
+					field.set(null, randomNumberGenerator);
+				}
+			}, true);
+		} catch (NotSupportedException e) {
 			logWarningNotSupported();
 		} catch (IllegalAccessException e) {
 			logError(e);
@@ -115,5 +178,12 @@ public class RandomFactory {
 
 			warningNotSupportedLogged = true;
 		}
+	}
+
+	interface FieldConsumer<T> {
+		void accept(T t) throws IllegalAccessException;
+	}
+
+	private static class NotSupportedException extends Exception {
 	}
 }
