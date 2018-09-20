@@ -7,5 +7,8 @@
 # http://robocode.sourceforge.net/license/epl-v10.html
 #
 
+
+export JAVA_HOME=$(/usr/libexec/java_home -v1.8); 
+
 ./mvn.sh clean install ant:ant -DskipTests=false $*
 #./mvn.sh eclipse:eclipse
