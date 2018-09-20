@@ -10,3 +10,4 @@ ucdetector_reports
 *.class
 .recommenders
 .idea/
+*.iml
