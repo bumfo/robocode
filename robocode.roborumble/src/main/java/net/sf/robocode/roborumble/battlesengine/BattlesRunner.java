@@ -29,7 +29,7 @@ import java.util.*;
  * @author Joachim Hofer (contributor)
  */
 public class BattlesRunner {
-	private final String inputfile;
+	private final BattlesFile inputfile;
 	private final int numrounds;
 	private final int fieldlen;
 	private final int fieldhei;
@@ -43,7 +43,7 @@ public class BattlesRunner {
 		// Read parameters
 		Properties parameters = getProperties(propertiesfile);
 
-		inputfile = parameters.getProperty("INPUT", "");
+		inputfile = new BattlesFile(parameters.getProperty("INPUT", ""));
 		numrounds = Integer.parseInt(parameters.getProperty("ROUNDS", "10"));
 		fieldlen = Integer.parseInt(parameters.getProperty("FIELDL", "800"));
 		fieldhei = Integer.parseInt(parameters.getProperty("FIELDH", "600"));
@@ -77,7 +77,7 @@ public class BattlesRunner {
 
 		// Read input file
 		ArrayList<String> robots = new ArrayList<String>();
-		if (readRobots(robots)) {
+		if (inputfile.readRobots(robots)) {
 			return;
 		}
 
@@ -150,30 +150,6 @@ public class BattlesRunner {
 			System.out.println(e);
 			return null;
 		}
-	}
-
-	private boolean readRobots(ArrayList<String> robots) {
-		BufferedReader br = null;
-		try {
-			FileReader fr = new FileReader(inputfile);
-			br = new BufferedReader(fr);
-
-			String record;
-			while ((record = br.readLine()) != null) {
-				robots.add(record);
-			}
-		} catch (IOException e) {
-			System.out.println("Battles input file not found ... Aborting");
-			System.out.println(e);
-			return true;
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException ignore) {}
-			}
-		}
-		return false;
 	}
 
 	private void dumpResults(PrintStream outtxt, RobotResults[] results, String last, boolean melee) {
