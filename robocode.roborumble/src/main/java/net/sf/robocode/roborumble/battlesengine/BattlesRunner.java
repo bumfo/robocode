@@ -110,7 +110,7 @@ public class BattlesRunner {
 					lastResults = null;
 					engine.runBattle(specification, true);
 					if (lastResults != null && lastResults.length > 1) {
-						dumpResults(outtxt, lastResults, rumbleBattle.getRunonly(), melee);
+						dumpResults(outtxt, lastResults, rumbleBattle, melee);
 					}
 				}
 			} else {
@@ -152,7 +152,7 @@ public class BattlesRunner {
 		}
 	}
 
-	private void dumpResults(PrintStream outtxt, RobotResults[] results, String last, boolean melee) {
+	private void dumpResults(PrintStream outtxt, RobotResults[] results, RumbleBattle rumbleBattle, boolean melee) {
 		final String BOT_INDEX_PATTERN = "\\[.*\\]";
 
 		for (int i = 0; i < results.length; i++) {
@@ -167,18 +167,21 @@ public class BattlesRunner {
 					String name2 = bot2.getTeamId() != null
 							? bot2.getTeamId().replaceAll(BOT_INDEX_PATTERN, "")
 							: bot2.getNameAndVersion();
-					int points1 = results[i].getScore();
-					int points2 = results[j].getScore();
-					int bullets1 = results[i].getBulletDamage();
-					int bullets2 = results[j].getBulletDamage();
-					int survival1 = results[i].getFirsts();
-					int survival2 = results[j].getFirsts();
 
-					outtxt.println(
-							game + "," + numrounds + "," + fieldlen + "x" + fieldhei + "," + user + ","
-							+ System.currentTimeMillis() + "," + last);
-					outtxt.println(name1 + "," + points1 + "," + bullets1 + "," + survival1);
-					outtxt.println(name2 + "," + points2 + "," + bullets2 + "," + survival2);
+					if (rumbleBattle.shouldDumpResult(name1) || rumbleBattle.shouldDumpResult(name2)) {
+						int points1 = results[i].getScore();
+						int points2 = results[j].getScore();
+						int bullets1 = results[i].getBulletDamage();
+						int bullets2 = results[j].getBulletDamage();
+						int survival1 = results[i].getFirsts();
+						int survival2 = results[j].getFirsts();
+
+						outtxt.println(
+								game + "," + numrounds + "," + fieldlen + "x" + fieldhei + "," + user + ","
+										+ System.currentTimeMillis() + "," + rumbleBattle.getRunonly());
+						outtxt.println(name1 + "," + points1 + "," + bullets1 + "," + survival1);
+						outtxt.println(name2 + "," + points2 + "," + bullets2 + "," + survival2);
+					}
 				}
 			}
 		}
