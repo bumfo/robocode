@@ -76,7 +76,7 @@ public class BattlesRunner {
 		BattleSpecification battle = new BattleSpecification(numrounds, field, (new RobotSpecification[2]));
 
 		// Read input file
-		ArrayList<String> robots = new ArrayList<String>();
+		ArrayList<RumbleBattle> robots = new ArrayList<RumbleBattle>();
 		if (inputfile.readRobots(robots)) {
 			return;
 		}
@@ -91,9 +91,9 @@ public class BattlesRunner {
 		int index = 0;
 
 		while (index < robots.size()) {
-			String[] param = (robots.get(index)).split(",");
+			RumbleBattle rumbleBattle = robots.get(index);
 
-			String enemies = getEnemies(melee, param);
+			String enemies = getEnemies(melee, rumbleBattle.getBots());
 
 			System.out.println("Fighting battle " + (index) + " ... " + enemies);
 
@@ -110,7 +110,7 @@ public class BattlesRunner {
 					lastResults = null;
 					engine.runBattle(specification, true);
 					if (lastResults != null && lastResults.length > 1) {
-						dumpResults(outtxt, lastResults, param[param.length - 1], melee);
+						dumpResults(outtxt, lastResults, rumbleBattle.getRunonly(), melee);
 					}
 				}
 			} else {

@@ -125,7 +125,7 @@ public class PrepareBattles {
 			int bot2 = random.nextInt(names.size());
 
 			if (bot1 != bot2) {
-				battlesfile.writeBattle(new String[]{names.get(bot1), names.get(bot2)}, runonly);
+				battlesfile.writeBattle(new RumbleBattle(new String[]{names.get(bot1), names.get(bot2)}, runonly));
 				count++;
 			}
 		}
@@ -264,7 +264,7 @@ public class PrepareBattles {
 
 			String[] items = battle.split(",");
 
-			battlesfile.writeBattle(new String[]{items[0], items[1]}, items[2]);
+			battlesfile.writeBattle(new RumbleBattle(new String[]{items[0], items[1]}, items[2]));
 
 			count++;
 		}
@@ -291,7 +291,7 @@ public class PrepareBattles {
 					bots = getRandomBots(namesAll, namesAll);
 				}
 				if (bots != null) {
-					battlesfile.writeBattle(new String[]{bots[0], bots[1]}, runonly);
+					battlesfile.writeBattle(new RumbleBattle(new String[]{bots[0], bots[1]}, runonly));
 
 					count++;
 				}
@@ -499,7 +499,7 @@ public class PrepareBattles {
 					bots = getRandomMeleeBots(namesAll, namesAll);
 				}
 				if (bots != null) {
-					battlesfile.writeBattle(bots, runonly);
+					battlesfile.writeBattle(new RumbleBattle(bots, runonly));
 
 					count++;
 				}

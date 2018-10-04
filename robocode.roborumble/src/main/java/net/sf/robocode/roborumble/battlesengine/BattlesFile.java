@@ -10,6 +10,7 @@ package net.sf.robocode.roborumble.battlesengine;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * The BattlesFile maintains Battles to run by BattlesRunner
@@ -22,7 +23,7 @@ public final class BattlesFile {
 		this.filename = filename;
 	}
 
-	public boolean readRobots(ArrayList<String> robots) {
+	public boolean readRobots(ArrayList<RumbleBattle> robots) {
 		BufferedReader br = null;
 		try {
 			FileReader fr = new FileReader(filename);
@@ -30,7 +31,9 @@ public final class BattlesFile {
 
 			String record;
 			while ((record = br.readLine()) != null) {
-				robots.add(record);
+				String[] param = record.split(",");
+
+				robots.add(new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1), param[param.length - 1]));
 			}
 		} catch (IOException e) {
 			System.out.println("Battles input file not found ... Aborting");
@@ -61,14 +64,7 @@ public final class BattlesFile {
 		outtxt.close();
 	}
 
-	public void writeBattle(String[] bots, String runonly) {
-		StringBuilder battle = new StringBuilder(bots[0]);
-
-		for (int i = 1; i < bots.length; i++) {
-			battle.append(',').append(bots[i]);
-		}
-		battle.append(',').append(runonly);
-
-		outtxt.println(battle);
+	public void writeBattle(RumbleBattle rumbleBattle){
+		outtxt.println(rumbleBattle);
 	}
 }
