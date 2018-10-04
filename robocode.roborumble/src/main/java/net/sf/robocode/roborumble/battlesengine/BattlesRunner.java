@@ -76,8 +76,8 @@ public class BattlesRunner {
 		BattleSpecification battle = new BattleSpecification(numrounds, field, (new RobotSpecification[2]));
 
 		// Read input file
-		ArrayList<RumbleBattle> robots = new ArrayList<RumbleBattle>();
-		if (inputfile.readRobots(robots)) {
+		ArrayList<RumbleBattle> rumbleBattles = new ArrayList<RumbleBattle>();
+		if (inputfile.readRumbleBattles(rumbleBattles)) {
 			return;
 		}
 
@@ -90,8 +90,8 @@ public class BattlesRunner {
 		// run battle
 		int index = 0;
 
-		while (index < robots.size()) {
-			RumbleBattle rumbleBattle = robots.get(index);
+		while (index < rumbleBattles.size()) {
+			RumbleBattle rumbleBattle = rumbleBattles.get(index);
 
 			String enemies = getEnemies(melee, rumbleBattle.getBots());
 

@@ -23,7 +23,7 @@ public final class BattlesFile {
 		this.filename = filename;
 	}
 
-	public boolean readRobots(ArrayList<RumbleBattle> robots) {
+	public boolean readRumbleBattles(ArrayList<RumbleBattle> rumbleBattles) {
 		BufferedReader br = null;
 		try {
 			FileReader fr = new FileReader(filename);
@@ -33,7 +33,7 @@ public final class BattlesFile {
 			while ((record = br.readLine()) != null) {
 				String[] param = record.split(",");
 
-				robots.add(new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1), param[param.length - 1]));
+				rumbleBattles.add(new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1), param[param.length - 1]));
 			}
 		} catch (IOException e) {
 			System.out.println("Battles input file not found ... Aborting");
