@@ -26,6 +26,12 @@ public class RumbleBattle {
 		}
 	}
 
+	public static RumbleBattle from(String record) {
+		String[] param = record.split(",");
+
+		return new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1), param[param.length - 1]);
+	}
+
 	public String[] getBots() {
 		return bots;
 	}

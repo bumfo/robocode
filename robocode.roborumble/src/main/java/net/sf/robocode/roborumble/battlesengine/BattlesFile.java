@@ -31,9 +31,7 @@ public final class BattlesFile {
 
 			String record;
 			while ((record = br.readLine()) != null) {
-				String[] param = record.split(",");
-
-				rumbleBattles.add(new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1), param[param.length - 1]));
+				rumbleBattles.add(RumbleBattle.from(record));
 			}
 		} catch (IOException e) {
 			System.out.println("Battles input file not found ... Aborting");
