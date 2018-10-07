@@ -8,6 +8,7 @@ import java.util.Set;
 public class RumbleBattle {
 	private final String[] bots;
 	private final String runonly;
+	private final boolean prioritized;
 
 	private final Set<String> prioritizedBots;
 
@@ -18,6 +19,7 @@ public class RumbleBattle {
 	public RumbleBattle(String[] bots, String runonly, boolean prioritized) {
 		this.bots = bots;
 		this.runonly = runonly;
+		this.prioritized = prioritized;
 
 		if (prioritized) {
 			prioritizedBots = new HashSet<String>(Arrays.asList(bots[0], bots[1]));
@@ -29,7 +31,22 @@ public class RumbleBattle {
 	public static RumbleBattle from(String record) {
 		String[] param = record.split(",");
 
-		return new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1), param[param.length - 1]);
+		String last = param[param.length - 1];
+
+		String runonly;
+		boolean prioritized;
+		int j = last.indexOf(":");
+		if (j != -1) {
+			runonly = last.substring(0, j);
+			prioritized = Boolean.parseBoolean(last.substring(j + 1));
+		} else {
+			runonly = last;
+			prioritized = true; // treating has prioritized is harmless
+		}
+
+		return new RumbleBattle(Arrays.copyOfRange(param, 0, param.length - 1),
+				runonly,
+				prioritized);
 	}
 
 	public String[] getBots() {
@@ -51,7 +68,7 @@ public class RumbleBattle {
 		for (int i = 1; i < bots.length; i++) {
 			battle.append(',').append(bots[i]);
 		}
-		battle.append(',').append(runonly);
+		battle.append(',').append(runonly).append(':').append(prioritized);
 
 		return battle.toString();
 	}

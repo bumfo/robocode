@@ -123,21 +123,21 @@ public class BattlesRunner {
 		outtxt.close();
 	}
 
-	private String getEnemies(boolean melee, String[] param) {
+	private String getEnemies(boolean melee, String[] bots) {
 		String enemies;
 
 		if (melee) {
 			StringBuilder eb = new StringBuilder();
 
-			for (int i = 0; i < param.length - 1; i++) {
+			for (int i = 0; i < bots.length; i++) {
 				if (i > 0) {
 					eb.append(',');
 				}
-				eb.append(param[i]);
+				eb.append(bots[i]);
 			}
 			enemies = eb.toString();
 		} else {
-			enemies = param[0] + "," + param[1];
+			enemies = bots[0] + "," + bots[1];
 		}
 		return enemies;
 	}
