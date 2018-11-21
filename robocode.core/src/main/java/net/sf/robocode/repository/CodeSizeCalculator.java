@@ -8,6 +8,8 @@
 package net.sf.robocode.repository;
 
 
+import net.sf.robocode.io.Logger;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -41,13 +43,8 @@ public final class CodeSizeCalculator {
 			method = item.getClass().getMethod("getCodeSize", (Class[]) null);
 			codesize = (Integer) method.invoke(item, (Object[]) null);
 
-		} catch (IllegalAccessException e) {
-			codesize = null;
-		} catch (InvocationTargetException e) {
-			codesize = null;
-		} catch (NoSuchMethodException e) {
-			codesize = null;
-		} catch (ClassNotFoundException e) {
+		} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException e) {
+			Logger.logError(e);
 			codesize = null;
 		}
 		return codesize;
