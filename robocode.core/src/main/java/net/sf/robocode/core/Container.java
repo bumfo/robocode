@@ -260,9 +260,4 @@ public final class Container extends ContainerBase {
 		return factory.as(Characteristics.NO_CACHE).getComponent(tClass);
 	}
 
-	private static final class ComponentNotFoundException extends RuntimeException {
-		ComponentNotFoundException(String str) {
-			super(str);
-		}
-	}
 }

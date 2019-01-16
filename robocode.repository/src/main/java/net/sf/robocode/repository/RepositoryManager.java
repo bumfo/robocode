@@ -84,6 +84,13 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 	}
 
 	public boolean refresh() {
+		if  (repository == null) {
+			repository = load();
+			if (repository == null) {
+				repository = new Repository();
+			}
+		}
+
 		return refresh(false);
 	}
 
@@ -153,6 +160,8 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 		} catch (IOException e) {
 			Logger.logError("Can't load robot database", e);
 			repository = null;
+
+			throw new IllegalStateException("Can't load robot database " + e.getMessage());
 		} finally {
 			FileUtil.cleanupStream(fis);
 		}
@@ -440,10 +449,11 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 	}
 
 	private void setStatus(String message) {
-		IWindowManager windowManager = Container.getComponent(IWindowManager.class);
+		try {
+			IWindowManager windowManager = Container.getComponent(IWindowManager.class);
 
-		if (windowManager != null) {
 			windowManager.setStatus(message);
+		} catch (IllegalStateException ignore) {
 		}
 		if (message.length() > 0) {
 			Logger.logMessage(message);

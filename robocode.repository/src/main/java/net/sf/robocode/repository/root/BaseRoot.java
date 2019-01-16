@@ -70,9 +70,11 @@ public abstract class BaseRoot implements Serializable, IRepositoryRoot {
 	}
 
 	protected static void setStatus(String message) {
-		IWindowManager windowManager = net.sf.robocode.core.Container.getComponent(IWindowManager.class);
-		if (windowManager != null) {
+		try {
+			IWindowManager windowManager = net.sf.robocode.core.Container.getComponent(IWindowManager.class);
+
 			windowManager.setStatus(message);
+		} catch (IllegalStateException ignore) {
 		}
 	}
 }
