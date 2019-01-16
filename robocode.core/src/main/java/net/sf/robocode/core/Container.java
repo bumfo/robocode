@@ -233,7 +233,11 @@ public final class Container extends ContainerBase {
 	}
 
 	public static <T> T getComponent(java.lang.Class<T> tClass) {
-		return cache.getComponent(tClass);
+		T ret = cache.getComponent(tClass);
+		if (ret == null) {
+			throw new NullPointerException(tClass.getName() + " not found");
+		}
+		return ret;
 	}
 
 	public static <T> T getComponent(java.lang.Class<T> tClass, String className) {
