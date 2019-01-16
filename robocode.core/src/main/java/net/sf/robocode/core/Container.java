@@ -16,6 +16,7 @@ import org.picocontainer.behaviors.Caching;
 import org.picocontainer.behaviors.OptInCaching;
 import org.picocontainer.classname.DefaultClassLoadingPicoContainer;
 
+import javax.annotation.Nonnull;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -232,6 +233,7 @@ public final class Container extends ContainerBase {
 		return cache.getComponent(tClass);
 	}
 
+	@Nonnull
 	public static <T> T getComponent(java.lang.Class<T> tClass) {
 		T ret = cache.getComponent(tClass);
 		if (ret == null) {
