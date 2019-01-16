@@ -31,7 +31,11 @@ import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.AbstractMap.SimpleImmutableEntry;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
 
 
 /**
@@ -477,10 +481,65 @@ public class WindowManager implements IWindowManagerExt {
 					}
 				});
 		if (files != null) {
-			for (File file : files) {
-				doImportRobot(file);
+			// for (File file : files) {
+			// 	tryImportRobot(file);
+			// }
+
+			List<Entry<File, File>> todo = new ArrayList<>();
+			List<File> same = new ArrayList<>();
+			List<File> to_overwrite = new ArrayList<>();
+			List<Entry<File, File>> overwrite = new ArrayList<>();
+
+			for (File inputFile : files) {
+				File outputFile = prepareImportRobot(inputFile);
+				if (inputFile.equals(outputFile)) {
+					same.add(outputFile);
+					continue;
+				}
+				if (outputFile.exists()) {
+					to_overwrite.add(outputFile);
+					overwrite.add(new SimpleImmutableEntry<>(inputFile, outputFile));
+					continue;
+				}
+				todo.add(new SimpleImmutableEntry<>(inputFile, outputFile));
+			}
+
+			int suc = 0;
+			List<Exception> exceptions = new ArrayList<>();
+
+			if (!todo.isEmpty()) {
+				exceptions.addAll(importRobots(todo));
+				suc += todo.size();
+			}
+
+			if (!overwrite.isEmpty()) {
+				if (JOptionPane.showConfirmDialog(getRobocodeFrame(), to_overwrite + " already exists.  Overwrite?",
+					"Warning", JOptionPane.YES_NO_OPTION)
+					!= JOptionPane.NO_OPTION) {
+					exceptions.addAll(importRobots(overwrite));
+					suc += overwrite.size();
+				}
+			}
+
+			suc -= exceptions.size();
+
+			JOptionPane.showMessageDialog(getRobocodeFrame(), String.format(
+				"%d Robots imported successfully, %d skipped, %d failed. Exceptions: %s", suc, same.size(), exceptions.size(), exceptions));
+		}
+	}
+
+	private List<Exception> importRobots(List<Entry<File, File>> todo) {
+		List<Exception> exceptions = new ArrayList<>();
+
+		for (Entry<File, File> pair : todo) {
+			try {
+				doImportRobot(pair.getKey(), pair.getValue());
+			} catch (IOException e) {
+				exceptions.add(e);
 			}
 		}
+
+		return exceptions;
 	}
 
 	public void showImportRobotDialogLegacy() {
@@ -520,11 +579,11 @@ public class WindowManager implements IWindowManagerExt {
 
 		if (chooser.showDialog(getRobocodeFrame(), "Import") == JFileChooser.APPROVE_OPTION) {
 			File inputFile = chooser.getSelectedFile();
-			doImportRobot(inputFile);
+			tryImportRobot(inputFile);
 		}
 	}
 
-	private void doImportRobot(File inputFile) {
+	private File prepareImportRobot(File inputFile) {
 		String fileName = inputFile.getName();
 		String extension = "";
 
@@ -536,7 +595,11 @@ public class WindowManager implements IWindowManagerExt {
 		if (!extension.equalsIgnoreCase(".jar")) {
 			fileName += ".jar";
 		}
-		File outputFile = new File(repositoryManager.getRobotsDirectory(), fileName);
+		return new File(repositoryManager.getRobotsDirectory(), fileName);
+	}
+
+	private void tryImportRobot(File inputFile) {
+		File outputFile = prepareImportRobot(inputFile);
 
 		if (inputFile.equals(outputFile)) {
 			JOptionPane.showMessageDialog(getRobocodeFrame(),
@@ -555,13 +618,17 @@ public class WindowManager implements IWindowManagerExt {
 				JOptionPane.OK_CANCEL_OPTION)
 				== JOptionPane.OK_OPTION) {
 			try {
-				FileUtil.copy(inputFile, outputFile);
-				repositoryManager.refresh();
+				doImportRobot(inputFile, outputFile);
 				JOptionPane.showMessageDialog(getRobocodeFrame(), "Robot imported successfully.");
 			} catch (IOException e) {
 				JOptionPane.showMessageDialog(getRobocodeFrame(), "Import failed: " + e);
 			}
 		}
+	}
+
+	private void doImportRobot(File inputFile, File outputFile) throws IOException {
+		FileUtil.copy(inputFile, outputFile);
+		repositoryManager.refresh();
 	}
 
 	/**

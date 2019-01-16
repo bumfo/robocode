@@ -9,7 +9,6 @@ package net.sf.robocode.core;
 
 
 import net.sf.robocode.io.Logger;
-
 import org.picocontainer.Characteristics;
 import org.picocontainer.MutablePicoContainer;
 import org.picocontainer.behaviors.Caching;
@@ -17,12 +16,12 @@ import org.picocontainer.behaviors.OptInCaching;
 import org.picocontainer.classname.DefaultClassLoadingPicoContainer;
 
 import javax.annotation.Nonnull;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +41,7 @@ import java.util.Set;
  * Dependency injection
  * We use PicoContainer as IoC vehicle. We configure it by loading Module class in every .jar or classpath we can find on system classPath
  * 1) Container.cache is containing singletons
- * 2) Container.factory will create always new instance of component 
+ * 2) Container.factory will create always new instance of component
  *
  * @author Pavel Savara (original)
  */
@@ -237,7 +236,7 @@ public final class Container extends ContainerBase {
 	public static <T> T getComponent(java.lang.Class<T> tClass) {
 		T ret = cache.getComponent(tClass);
 		if (ret == null) {
-			throw new NullPointerException(tClass.getName() + " not found");
+			throw new ComponentNotFoundException(tClass.getName() + " not found");
 		}
 		return ret;
 	}
@@ -259,5 +258,11 @@ public final class Container extends ContainerBase {
 
 	public static <T> T createComponent(java.lang.Class<T> tClass) {
 		return factory.as(Characteristics.NO_CACHE).getComponent(tClass);
+	}
+
+	private static final class ComponentNotFoundException extends RuntimeException {
+		ComponentNotFoundException(String str) {
+			super(str);
+		}
 	}
 }
