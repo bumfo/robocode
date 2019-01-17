@@ -226,9 +226,13 @@ public class WindowManager implements IWindowManagerExt {
 				return files;
 			}
 		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			dialog.setVisible(true);
 
-			return null;
+			if (dialog.getFile() == null) {
+				return null;
+			}
+
+			return new File[]{new File(dialog.getDirectory() + dialog.getFile())};
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 
