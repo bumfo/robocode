@@ -510,15 +510,16 @@ public class WindowManager implements IWindowManagerExt {
 			// 	tryImportRobot(file);
 			// }
 
+			int skipped = 0;
+
 			List<Entry<File, File>> todo = new ArrayList<Entry<File, File>>();
-			List<File> same = new ArrayList<File>();
 			List<File> to_overwrite = new ArrayList<File>();
 			List<Entry<File, File>> overwrite = new ArrayList<Entry<File, File>>();
 
 			for (File inputFile : files) {
 				File outputFile = prepareImportRobot(inputFile);
 				if (inputFile.equals(outputFile)) {
-					same.add(outputFile);
+					skipped += 1;
 					continue;
 				}
 				if (outputFile.exists()) {
@@ -539,8 +540,9 @@ public class WindowManager implements IWindowManagerExt {
 
 			if (!overwrite.isEmpty()) {
 				if (JOptionPane.showConfirmDialog(getRobocodeFrame(), to_overwrite + " already exists.  Overwrite?",
-					"Warning", JOptionPane.YES_NO_OPTION)
-					!= JOptionPane.NO_OPTION) {
+					"Warning", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+					skipped += overwrite.size();
+				} else {
 					exceptions.addAll(importRobots(overwrite));
 					suc += overwrite.size();
 				}
@@ -548,8 +550,11 @@ public class WindowManager implements IWindowManagerExt {
 
 			suc -= exceptions.size();
 
-			JOptionPane.showMessageDialog(getRobocodeFrame(), String.format(
-				"%d Robots imported successfully, %d skipped, %d failed. Exceptions: %s", suc, same.size(), exceptions.size(), exceptions));
+			String exceptionMsg = exceptions.size() == 0 ? "" : String.format("Exceptions: %s", exceptions);
+			String msg = String.format(
+				"%d Robots imported successfully, %d skipped, %d failed. %s", suc, skipped, exceptions.size(), exceptionMsg);
+
+			JOptionPane.showMessageDialog(getRobocodeFrame(), msg);
 		}
 	}
 
