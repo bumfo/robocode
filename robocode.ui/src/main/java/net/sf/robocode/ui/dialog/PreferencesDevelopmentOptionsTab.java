@@ -190,7 +190,11 @@ public class PreferencesDevelopmentOptionsTab extends WizardPanel {
 
 				dialog.setVisible(true);
 
-				return dialog.getDirectory();
+				if (dialog.getDirectory() != null) {
+					return dialog.getDirectory() + dialog.getFile();
+				} else {
+					return null;
+				}
 			} finally {
 				System.setProperty("apple.awt.fileDialogForDirectories", "false");
 			}
