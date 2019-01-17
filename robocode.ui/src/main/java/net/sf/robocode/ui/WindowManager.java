@@ -31,6 +31,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.ArrayList;
 import java.util.List;
@@ -207,15 +209,34 @@ public class WindowManager implements IWindowManagerExt {
 		dialog.setDirectory(directory);
 		dialog.setFile(file);
 
-		dialog.setMultipleMode(true);
+		Class<FileDialog> fileDialogClass = FileDialog.class;
 
-		dialog.setVisible(true);
+		try {
+			Method setMultipleMode = fileDialogClass.getMethod("setMultipleMode", Boolean.TYPE);
+			Method getFiles = fileDialogClass.getMethod("getFiles");
 
-		File[] files = dialog.getFiles();
-		if (files.length == 0) {
+			setMultipleMode.invoke(dialog, true);
+
+			dialog.setVisible(true);
+
+			File[] files = (File[]) getFiles.invoke(dialog);
+			if (files.length == 0) {
+				return null;
+			} else {
+				return files;
+			}
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+
 			return null;
-		} else {
-			return files;
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+
+			return null;
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+
+			return null;
 		}
 	}
 
@@ -485,10 +506,10 @@ public class WindowManager implements IWindowManagerExt {
 			// 	tryImportRobot(file);
 			// }
 
-			List<Entry<File, File>> todo = new ArrayList<>();
-			List<File> same = new ArrayList<>();
-			List<File> to_overwrite = new ArrayList<>();
-			List<Entry<File, File>> overwrite = new ArrayList<>();
+			List<Entry<File, File>> todo = new ArrayList<Entry<File, File>>();
+			List<File> same = new ArrayList<File>();
+			List<File> to_overwrite = new ArrayList<File>();
+			List<Entry<File, File>> overwrite = new ArrayList<Entry<File, File>>();
 
 			for (File inputFile : files) {
 				File outputFile = prepareImportRobot(inputFile);
@@ -498,14 +519,14 @@ public class WindowManager implements IWindowManagerExt {
 				}
 				if (outputFile.exists()) {
 					to_overwrite.add(outputFile);
-					overwrite.add(new SimpleImmutableEntry<>(inputFile, outputFile));
+					overwrite.add(new SimpleImmutableEntry<File, File>(inputFile, outputFile));
 					continue;
 				}
-				todo.add(new SimpleImmutableEntry<>(inputFile, outputFile));
+				todo.add(new SimpleImmutableEntry<File, File>(inputFile, outputFile));
 			}
 
 			int suc = 0;
-			List<Exception> exceptions = new ArrayList<>();
+			List<Exception> exceptions = new ArrayList<Exception>();
 
 			if (!todo.isEmpty()) {
 				exceptions.addAll(importRobots(todo));
@@ -529,7 +550,7 @@ public class WindowManager implements IWindowManagerExt {
 	}
 
 	private List<Exception> importRobots(List<Entry<File, File>> todo) {
-		List<Exception> exceptions = new ArrayList<>();
+		List<Exception> exceptions = new ArrayList<Exception>();
 
 		for (Entry<File, File> pair : todo) {
 			try {
