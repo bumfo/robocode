@@ -7,5 +7,7 @@
 # https://robocode.sourceforge.io/license/epl-v10.html
 #
 
-./mvnw clean install ant:ant -DskipTests=false $*
+export JAVA_HOME=$(/usr/libexec/java_home -v1.8)
+
+./mvnw clean install ant:ant -DskipTests=false -Dapple.awt.UIElement=true $*
 #./mvn.sh eclipse:eclipse
