@@ -8,13 +8,13 @@
 package net.sf.robocode.roborumble.battlesengine;
 
 
-import static net.sf.robocode.roborumble.util.PropertiesUtil.getProperties;
-import static net.sf.robocode.roborumble.util.PropertiesUtil.storeProperties;
+import net.sf.robocode.repository.CodeSizeCalculator;
 
 import java.io.File;
 import java.util.Properties;
 
-import net.sf.robocode.repository.CodeSizeCalculator;
+import static net.sf.robocode.roborumble.util.PropertiesUtil.getProperties;
+import static net.sf.robocode.roborumble.util.PropertiesUtil.storeProperties;
 
 
 /**
@@ -24,7 +24,7 @@ import net.sf.robocode.repository.CodeSizeCalculator;
  * another file.
  * Controlled by properties files.
  *
- * @author Albert Pérez (original)
+ * @author Albert Pï¿½rez (original)
  * @author Flemming N. Larsen (contributor)
  */
 public class CompetitionsSelector {
