@@ -17,6 +17,8 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
+
 import static java.lang.Math.min;
 
 
@@ -100,33 +102,26 @@ public final class InteractiveHandler implements KeyEventDispatcher, MouseListen
 	}
 
 	private MouseEvent mirroredMouseEvent(final MouseEvent e) {
+		Point2D.Double point = mirrorPoint(e.getX(), e.getY());
 
-		double scale;
-		BattleProperties battleProps = battleManager.getBattleProperties();
-
-		int vWidth = battleView.getWidth();
-		int vHeight = battleView.getHeight();
-		int fWidth = battleProps.getBattlefieldWidth();
-		int fHeight = battleProps.getBattlefieldHeight();
-
-		if (vWidth < fWidth || vHeight < fHeight) {
-			scale = min((double) vWidth / fWidth, (double) fHeight / fHeight);
-		} else {
-			scale = 1;
-		}
-
-		double dx = (vWidth - scale * fWidth) / 2;
-		double dy = (vHeight - scale * fHeight) / 2;
-
-		int x = (int) ((e.getX() - dx) / scale + 0.5);
-		int y = (int) (fHeight - (e.getY() - dy) / scale + 0.5);
+		int x = (int) point.x;
+		int y = (int) point.y;
 
 		return new MouseEvent(SafeComponent.getSafeEventComponent(), e.getID(), e.getWhen(), e.getModifiersEx(), x, y,
 				e.getClickCount(), e.isPopupTrigger(), e.getButton());
 	}
 
 	private MouseWheelEvent mirroredMouseWheelEvent(final MouseWheelEvent e) {
+		Point2D.Double point = mirrorPoint(e.getX(), e.getY());
 
+		int x = (int) point.x;
+		int y = (int) point.y;
+
+		return new MouseWheelEvent(SafeComponent.getSafeEventComponent(), e.getID(), e.getWhen(), e.getModifiersEx(), x,
+				y, e.getClickCount(), e.isPopupTrigger(), e.getScrollType(), e.getScrollAmount(), e.getWheelRotation());
+	}
+
+	private Point2D.Double mirrorPoint(int eventX, int eventY) {
 		double scale;
 		BattleProperties battleProps = battleManager.getBattleProperties();
 
@@ -144,10 +139,9 @@ public final class InteractiveHandler implements KeyEventDispatcher, MouseListen
 		double dx = (vWidth - scale * fWidth) / 2;
 		double dy = (vHeight - scale * fHeight) / 2;
 
-		int x = (int) ((e.getX() - dx) / scale + 0.5);
-		int y = (int) (fHeight - (e.getY() - dy) / scale + 0.5);
+		double pointX = (eventX - dx) / scale + 0.5;
+		double pointY = fHeight - (eventY - dy) / scale + 0.5;
 
-		return new MouseWheelEvent(SafeComponent.getSafeEventComponent(), e.getID(), e.getWhen(), e.getModifiersEx(), x,
-				y, e.getClickCount(), e.isPopupTrigger(), e.getScrollType(), e.getScrollAmount(), e.getWheelRotation());
+		return new Point2D.Double(pointX, pointY);
 	}
 }
