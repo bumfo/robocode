@@ -374,7 +374,7 @@ class ClassAnalyzer {
 			Boolean ret = cache.get(binaryName);
 			if (ret != null) return ret;
 
-			Logger.logMessage(this + ".isAssignableToRobot " + binaryName);
+//			Logger.logMessage(this + ".isAssignableToRobot " + binaryName);
 
 			cache.put(binaryName, false); // in case malicious circular reference
 
@@ -382,7 +382,7 @@ class ClassAnalyzer {
 
 			cache.put(binaryName, res);
 
-			Logger.logMessage(this + ".isAssignableToRobot " + binaryName + ": " + res);
+//			Logger.logMessage(this + ".isAssignableToRobot " + binaryName + ": " + res);
 
 			return res;
 		}
