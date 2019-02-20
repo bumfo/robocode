@@ -316,12 +316,16 @@ class ClassAnalyzer {
 		}
 
 		private boolean calcAssignableToRobot(String binaryName) {
-			if (binaryName.startsWith("robocode.")) {
+			if (binaryName.startsWith("robocode/")) {
 				try {
 					return IBasicRobot.class.isAssignableFrom(Class.forName(binaryName));
 				} catch (ClassNotFoundException e) {
 					return false;
 				}
+			}
+
+			if (binaryName.startsWith("java/")) {
+				return false;
 			}
 
 			ByteBuffer classFile = fn.get(binaryName);
@@ -361,7 +365,7 @@ class ClassAnalyzer {
 			}
 		}
 
-		public boolean isAssignableToRobot(String binaryName) {
+		private boolean isAssignableToRobot(String binaryName) {
 			if (binaryName == null) return false;
 
 			Boolean ret = cache.get(binaryName);
@@ -378,7 +382,7 @@ class ClassAnalyzer {
 			return res;
 		}
 
-		public boolean isMainClass(String binaryName) {
+		private boolean isMainClassInternal(String binaryName) {
 			if (isAssignableToRobot(binaryName)) {
 				Boolean concrete = isConcrete.get(binaryName);
 				if (concrete == null) return false;
@@ -386,6 +390,10 @@ class ClassAnalyzer {
 			} else {
 				return false;
 			}
+		}
+
+		public boolean isMainClass(String name) {
+			return isMainClassInternal(name.replace('.', '/'));
 		}
 	}
 }
