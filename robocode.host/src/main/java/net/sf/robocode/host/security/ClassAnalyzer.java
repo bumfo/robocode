@@ -318,8 +318,9 @@ class ClassAnalyzer {
 		private boolean calcAssignableToRobot(String binaryName) {
 			if (binaryName.startsWith("robocode/")) {
 				try {
-					return IBasicRobot.class.isAssignableFrom(Class.forName(binaryName));
+					return IBasicRobot.class.isAssignableFrom(Class.forName(binaryName.replace('/', '.')));
 				} catch (ClassNotFoundException e) {
+					Logger.logError(e.toString());
 					return false;
 				}
 			}
@@ -378,6 +379,8 @@ class ClassAnalyzer {
 			boolean res = calcAssignableToRobot(binaryName);
 
 			cache.put(binaryName, res);
+
+			Logger.logMessage(this + ".isAssignableToRobot " + binaryName + ": " + res);
 
 			return res;
 		}
