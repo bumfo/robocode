@@ -327,10 +327,6 @@ class ClassAnalyzer {
 				}
 			}
 
-			if (binaryName.startsWith("java/")) {
-				return false;
-			}
-
 			ByteBuffer classFile = fn.get(binaryName);
 
 			if (classFile == null) return false;
@@ -370,6 +366,10 @@ class ClassAnalyzer {
 
 		private boolean isAssignableToRobot(String binaryName) {
 			if (binaryName == null) return false;
+
+			if (binaryName.startsWith("java/")) {
+				return false;
+			}
 
 			Boolean ret = cache.get(binaryName);
 			if (ret != null) return ret;
