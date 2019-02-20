@@ -318,7 +318,9 @@ class ClassAnalyzer {
 		private boolean calcAssignableToRobot(String binaryName) {
 			if (binaryName.startsWith("robocode/")) {
 				try {
-					return IBasicRobot.class.isAssignableFrom(Class.forName(binaryName.replace('/', '.')));
+					return IBasicRobot.class.isAssignableFrom(Class.forName(binaryName
+							.replace('/', '.')
+							.replace('$', '.')));
 				} catch (ClassNotFoundException e) {
 					Logger.logError(e.toString());
 					return false;
