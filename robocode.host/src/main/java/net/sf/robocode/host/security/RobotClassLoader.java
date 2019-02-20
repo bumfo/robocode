@@ -18,6 +18,7 @@ import net.sf.robocode.io.URLJarCollector;
 import robocode.robotinterfaces.IBasicRobot;
 
 import java.io.BufferedInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -53,6 +54,7 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	private static final PermissionCollection EMPTY_PERMISSIONS = new Permissions();
 
 	private final String fullClassName;
+	public final ClassAnalyzer.RobotMainClassPredicate mainClassPredicate;
 
 	private ClassLoader parent;
 	private CodeSource codeSource;
@@ -67,15 +69,30 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	private Set<String> foundSystemClasses = new HashSet<String>();
 
 	// Cached warning messages
-	private String[] staticRobotInstanceWarning;  
+	private String[] staticRobotInstanceWarning;
 
 	public RobotClassLoader(URL robotClassPath, String robotFullClassName) {
+		this(robotClassPath, robotFullClassName, null);
+	}
+
+	public RobotClassLoader(URL robotClassPath, String robotFullClassName, ClassAnalyzer.RobotMainClassPredicate mainClassPredicate) {
 		super(new URL[] { robotClassPath}, Container.systemLoader);
 		fullClassName = robotFullClassName;
 		parent = getParent();
 		try {
 			codeSource = new CodeSource(new URL(UNTRUSTED_URL), (Certificate[]) null);
 		} catch (MalformedURLException ignored) {}
+
+		if (mainClassPredicate == null) {
+			mainClassPredicate = new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
+				@Override
+				public ByteBuffer get(String binaryName) {
+					return findLocalResource(binaryName);
+				}
+			});
+		}
+
+		this.mainClassPredicate = mainClassPredicate;
 	}
 
 	public void setRobotProxy(Object robotProxy) {
@@ -220,6 +237,8 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	public synchronized Class<?> loadRobotMainClass(boolean resolve) throws ClassNotFoundException {
 		try {
 			if (robotClass == null) {
+				Logger.logMessage("isMainClass " + fullClassName + ": " + mainClassPredicate.isMainClass(fullClassName));
+
 				robotClass = loadClass(fullClassName, resolve);
 
 				if (!IBasicRobot.class.isAssignableFrom(robotClass)) {
