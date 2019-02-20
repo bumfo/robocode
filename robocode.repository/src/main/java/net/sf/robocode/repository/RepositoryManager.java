@@ -44,7 +44,7 @@ import java.util.StringTokenizer;
 public class RepositoryManager implements IRepositoryManager { // NO_UCD (use default)
 
 	private static final String DATABASE_FILENAME = "robot.database";
-	
+
 	private final ISettingsManager properties;
 	private Repository repository;
 
@@ -101,12 +101,14 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 	}
 
 	private boolean update(File robotsDir, Collection<File> devDirs, boolean force) {
+		long t0 = System.nanoTime();
+
 		final int prev = repository.getItems().size();
 
 		RootHandler.openHandlers();
 		try {
 			Map<String, IRepositoryRoot> newRoots = new HashMap<String, IRepositoryRoot>();
-	
+
 			RootHandler.visitDirectories(robotsDir, false, newRoots, repository, force);
 			for (File dir : devDirs) {
 				RootHandler.visitDirectories(dir, true, newRoots, repository, force);
@@ -115,6 +117,8 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 		} finally {
 			RootHandler.closeHandlers();
 		}
+
+		System.out.println("update takes " + ((System.nanoTime()- t0) / 1000000000.0) + "s");
 
 		return prev != repository.getItems().size();
 	}
@@ -125,7 +129,7 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 			repositoryItem.getRoot().updateItem(repositoryItem, force);
 			return true;
 		}
-		return false; 
+		return false;
 	}
 
 	private void save() {
@@ -142,7 +146,7 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 
 	private Repository load() {
 		Repository repository = new Repository();
-		
+
 		FileInputStream fis = null;
 		try {
 			File file = new File(getRobotsDirectory(), DATABASE_FILENAME);
@@ -158,7 +162,7 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 		}
 		return repository;
 	}
-	
+
 	public void reload(boolean rebuild) {
 		// Bug fix [2867326] - Lockup on start if too many bots in robots dir (cont'd).
 		URLJarCollector.enableGc(true);
@@ -354,7 +358,7 @@ public class RepositoryManager implements IRepositoryManager { // NO_UCD (use de
 			return -2;
 		}
 		((RepositoryItem) item).getRoot().extractJAR();
-		return 0; 
+		return 0;
 	}
 
 	public void createTeam(File target, TeamProperties teamProps) throws IOException {

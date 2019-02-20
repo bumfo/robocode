@@ -237,17 +237,17 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	public synchronized Class<?> loadRobotMainClass(boolean resolve) throws ClassNotFoundException {
 		try {
 			if (robotClass == null) {
-				boolean mainClass = mainClassPredicate.isMainClass(fullClassName);
-//				Logger.logMessage("isMainClass " + fullClassName + ": " + mainClass);
-
-				if (!mainClass) {
-					Class<?> tmp = loadClass(fullClassName, false);
-					if (IBasicRobot.class.isAssignableFrom(tmp) && !Modifier.isAbstract(tmp.getModifiers()) && !Modifier.isInterface(tmp.getModifiers())) {
-						Logger.logError("isMainClass failed: " + tmp);
-					}
-
-					return null;
-				}
+//				boolean mainClass = mainClassPredicate.isMainClass(fullClassName);
+////				Logger.logMessage("isMainClass " + fullClassName + ": " + mainClass);
+//
+//				if (!mainClass) {
+//					Class<?> tmp = loadClass(fullClassName, false);
+//					if (IBasicRobot.class.isAssignableFrom(tmp) && !Modifier.isAbstract(tmp.getModifiers()) && !Modifier.isInterface(tmp.getModifiers())) {
+//						Logger.logError("isMainClass failed: " + tmp);
+//					}
+//
+//					return null;
+//				}
 
 				robotClass = loadClass(fullClassName, resolve);
 
