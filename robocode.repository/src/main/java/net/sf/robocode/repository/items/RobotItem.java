@@ -24,7 +24,11 @@ import net.sf.robocode.host.IHostManager;
 import net.sf.robocode.version.IVersionManager;
 import robocode.control.RobotSpecification;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -82,10 +86,6 @@ public class RobotItem extends RobotSpecItem implements IRobotItem {
 
 		classPathURL = root.getURL();
 		sourcePathURLs = new HashSet<URL>();
-
-		ByteArrayOutputStream a = new ByteArrayOutputStream();
-		new Throwable().printStackTrace(new PrintStream(a));
-		Logger.logMessage("new RobotItem(" + itemURL + ")" + "\n" + a.toString());
 	}
 
 	private void populate() {
