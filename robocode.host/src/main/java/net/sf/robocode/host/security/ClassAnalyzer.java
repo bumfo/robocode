@@ -9,6 +9,7 @@ package net.sf.robocode.host.security;
 
 
 import net.sf.robocode.io.Logger;
+import robocode.robotinterfaces.IBasicRobot;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -315,7 +316,17 @@ class ClassAnalyzer {
 		}
 
 		private boolean calcAssignableToRobot(String binaryName) {
+			if (binaryName.startsWith("robocode.")) {
+				try {
+					return IBasicRobot.class.isAssignableFrom(Class.forName(binaryName));
+				} catch (ClassNotFoundException e) {
+					return false;
+				}
+			}
+
 			ByteBuffer classFile = fn.get(binaryName);
+
+			if (classFile == null) return false;
 
 			List<Integer> classNameIndexes = new ArrayList<Integer>();
 			ClassInfo info;
@@ -344,7 +355,7 @@ class ClassAnalyzer {
 					}
 				}
 
-				return true;
+				return false;
 			} catch (IOException e) {
 				return false;
 			}
