@@ -8,9 +8,12 @@ import java.io.BufferedInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 public final class ClassFileReader {
 	public static ByteBuffer readClassFileFromURL(URL url) {
@@ -54,5 +57,31 @@ public final class ClassFileReader {
 			FileUtil.cleanupStream(is);
 		}
 		return result;
+	}
+
+	public static ByteBuffer readClassFile(final URL url) {
+		return AccessController.doPrivileged(new PrivilegedAction<ByteBuffer>() {
+			public ByteBuffer run() {
+				return readClassFileFromURL(url);
+			}
+		});
+	}
+
+	public static ClassAnalyzer.RobotMainClassPredicate createMainClassPredicate(final URL rootURL) {
+		return new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
+			@Override
+			public ByteBuffer get(String binaryName) {
+				String fileName = binaryName + ".class";
+				URL url;
+				try {
+					url = new URL(rootURL.getProtocol(), rootURL.getHost(), rootURL.getPort(), rootURL.getPath() + fileName);
+				} catch (MalformedURLException e) {
+					Logger.logError(e);
+					return null;
+				}
+
+				return readClassFile(url);
+			}
+		});
 	}
 }

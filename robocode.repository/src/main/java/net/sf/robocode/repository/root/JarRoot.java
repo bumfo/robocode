@@ -27,9 +27,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -110,7 +107,7 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 	private void readJarStream(Collection<IRepositoryItem> repositoryItems, String root, JarInputStream jarIS) throws IOException {
 		final URL rootURL = new URL(root + "!/");
 
-		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = createMainClassPredicate(rootURL);
+		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = ClassFileReader.createMainClassPredicate(rootURL);
 
 		JarEntry entry = jarIS.getNextJarEntry();
 		while (entry != null) {
@@ -187,29 +184,4 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 		JarExtractor.extractJar(rootURL);
 	}
 
-	private static ClassAnalyzer.RobotMainClassPredicate createMainClassPredicate(final URL rootURL) {
-		return new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
-			@Override
-			public ByteBuffer get(String binaryName) {
-				String fileName = binaryName + ".class";
-				URL url;
-				try {
-					url = new URL(rootURL.getProtocol(), rootURL.getHost(), rootURL.getPort(), rootURL.getPath() + fileName);
-				} catch (MalformedURLException e) {
-					Logger.logError(e);
-					return null;
-				}
-
-				return readClassFile(url);
-			}
-		});
-	}
-
-	private static ByteBuffer readClassFile(final URL url) {
-		return AccessController.doPrivileged(new PrivilegedAction<ByteBuffer>() {
-			public ByteBuffer run() {
-				return ClassFileReader.readClassFileFromURL(url);
-			}
-		});
-	}
 }
