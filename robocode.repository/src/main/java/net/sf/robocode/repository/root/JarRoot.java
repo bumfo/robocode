@@ -65,9 +65,12 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 	public void updateItems(boolean force) {
 		setStatus("Updating JAR: " + rootPath.toString());
 
+
 		long lastModified = rootPath.lastModified();
 
 		if (lastModified > this.lastModified) {
+			long t0 = System.nanoTime();
+
 			repository.removeItemsFromRoot(this);
 			this.lastModified = lastModified;
 
@@ -77,6 +80,8 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 			for (IRepositoryItem repositoryItem : repositoryItems) {
 				repositoryItem.update(lastModified, force);
 			}
+
+			System.out.println("Update JAR " + rootPath.toString() + " takes " + (System.nanoTime() - t0) / 1000000.0 + "ms");
 		}
 	}
 
