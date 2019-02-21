@@ -237,13 +237,20 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	}
 
 	public synchronized Class<?> loadRobotMainClass(boolean resolve) throws ClassNotFoundException {
+		if (fullClassName == null) return null;
+
+
 		try {
 			if (robotClass == null) {
 				if (!mainClassPredicate.isMainClass(fullClassName)) {
 					return null;
 				}
 
+				long t0 = System.nanoTime();
+
 				robotClass = loadClass(fullClassName, resolve);
+
+				System.out.println("loadClass " + getURLs()[0] + fullClassName + " takes " + (System.nanoTime() - t0) / 1000000.0 + "ms");
 
 				if (!IBasicRobot.class.isAssignableFrom(robotClass)) {
 					Logger.logError(robotClass + " is not robot");
@@ -252,6 +259,8 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 					return null;
 				}
 				if (resolve) {
+					long t1 = System.nanoTime();
+
 					// resolve methods to see more referenced classes
 					robotClass.getMethods();
 
@@ -267,6 +276,8 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 							}
 						}
 					} while (referencedClasses.size() != clone.size());
+
+					System.out.println("resolve references " + getURLs()[0] + fullClassName + " takes " + (System.nanoTime() - t1) / 1000000.0 + "ms");
 				}
 			} else {
 				warnIfStaticRobotInstanceFields();
