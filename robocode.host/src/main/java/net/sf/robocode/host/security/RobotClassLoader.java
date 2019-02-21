@@ -53,7 +53,6 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	private static final PermissionCollection EMPTY_PERMISSIONS = new Permissions();
 
 	private final String fullClassName;
-	public final ClassAnalyzer.RobotMainClassPredicate mainClassPredicate;
 
 	private ClassLoader parent;
 	private CodeSource codeSource;
@@ -71,27 +70,12 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 	private String[] staticRobotInstanceWarning;  
 
 	public RobotClassLoader(URL robotClassPath, String robotFullClassName) {
-		this(robotClassPath, robotFullClassName, null);
-	}
-
-	public RobotClassLoader(URL robotClassPath, String robotFullClassName, ClassAnalyzer.RobotMainClassPredicate mainClassPredicate) {
 		super(new URL[] { robotClassPath}, Container.systemLoader);
 		fullClassName = robotFullClassName;
 		parent = getParent();
 		try {
 			codeSource = new CodeSource(new URL(UNTRUSTED_URL), (Certificate[]) null);
 		} catch (MalformedURLException ignored) {}
-
-		if (mainClassPredicate == null) {
-			mainClassPredicate = new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
-				@Override
-				public ByteBuffer get(String binaryName) {
-					return findLocalResource(binaryName);
-				}
-			});
-		}
-
-		this.mainClassPredicate = mainClassPredicate;
 	}
 
 	public void setRobotProxy(Object robotProxy) {
@@ -237,10 +221,6 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 
 		try {
 			if (robotClass == null) {
-				if (!mainClassPredicate.isMainClass(fullClassName)) {
-					return null;
-				}
-
 				robotClass = loadClass(fullClassName, resolve);
 
 				if (!IBasicRobot.class.isAssignableFrom(robotClass)) {
