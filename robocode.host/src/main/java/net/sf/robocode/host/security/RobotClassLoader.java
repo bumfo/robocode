@@ -263,17 +263,30 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 					robotClass.getMethods();
 
 					// iterate thru dependencies until we didn't found any new
-					HashSet<String> clone;
+					Set<String> clone = new HashSet<String>();
+					Set<String> last = referencedClasses;
+					try {
+						boolean updated;
+						do {
+							referencedClasses = new HashSet<String>();
 
-					do {
-						clone = new HashSet<String>(referencedClasses);
-						for (String reference : clone) {
-							testPackages(reference);
-							if (!isSystemClass(reference)) {
-								loadClass(reference, true);
+							updated = false;
+							for (String reference : last) {
+								if (!clone.contains(reference)) {
+									updated |= clone.add(reference);
+
+									testPackages(reference);
+									if (!isSystemClass(reference)) {
+										loadClass(reference, true);
+									}
+								}
 							}
-						}
-					} while (referencedClasses.size() != clone.size());
+
+							last = referencedClasses;
+						} while (updated);
+					} finally {
+						referencedClasses = clone;
+					}
 
 					System.out.println("resolve references " + getURLs()[0] + fullClassName + " takes " + (System.nanoTime() - t1) / 1000000.0 + "ms");
 				}
