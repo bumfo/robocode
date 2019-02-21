@@ -73,8 +73,6 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 
 	public RobotClassLoader(URL robotClassPath, String robotFullClassName) {
 		this(robotClassPath, robotFullClassName, null);
-
-		System.out.println("RobotClassLoader(" + robotClassPath.toString() + ", " + robotFullClassName + ")");
 	}
 
 	public RobotClassLoader(URL robotClassPath, String robotFullClassName, ClassAnalyzer.RobotMainClassPredicate mainClassPredicate) {
