@@ -54,6 +54,8 @@ public final class ClasspathRoot extends BaseRoot implements IRepositoryRoot {
 		// Items will be re-added or updated later in this method.
 		repository.removeItemsFromRoot(this);
 
+		long t0 = System.nanoTime();
+
 		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = ClassFileReader.createMainClassPredicate(rootURL);
 
 		// Retrieve all items accessible from this classpath root along with their 'last modified' date
@@ -67,6 +69,8 @@ public final class ClasspathRoot extends BaseRoot implements IRepositoryRoot {
 			IRepositoryItem repositoryItem = items.get(i);
 			repositoryItem.update(itemsLastModification.get(i), force);
 		}
+
+		System.out.println("Update classpath " + rootPath.toString() + " takes " + (System.nanoTime() - t0) / 1000000.0 + "ms");
 	}
 
 	private void visitDirectory(final URI rootURI, final File path, final List<IRepositoryItem> items, final List<Long> itemsLastModification, final ClassAnalyzer.RobotMainClassPredicate mainClassPredicate) {
