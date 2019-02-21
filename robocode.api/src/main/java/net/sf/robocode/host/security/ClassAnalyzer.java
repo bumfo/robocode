@@ -26,7 +26,7 @@ import java.util.Set;
  * @author Flemming N. Larsen (contributor)
  * @author Robert D. Maupin (contributor)
  */
-class ClassAnalyzer {
+final class ClassAnalyzer {
 	private final static byte CONSTANT_Class = 7;
 	private final static byte CONSTANT_Fieldref = 9;
 	private final static byte CONSTANT_Methodref = 10;
@@ -71,7 +71,7 @@ class ClassAnalyzer {
 		}
 	}
 
-	private static class ClassInfo {
+	private static final class ClassInfo {
 		String[] utf8s;
 		int[] classNames;
 
