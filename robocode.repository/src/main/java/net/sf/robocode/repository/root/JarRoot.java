@@ -25,8 +25,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -74,7 +73,7 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 			repository.removeItemsFromRoot(this);
 			this.lastModified = lastModified;
 
-			List<IRepositoryItem> repositoryItems = new ArrayList<IRepositoryItem>();
+			Set<IRepositoryItem> repositoryItems = new HashSet<IRepositoryItem>();
 
 			visitItems(repositoryItems);
 			for (IRepositoryItem repositoryItem : repositoryItems) {
@@ -85,7 +84,7 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 		}
 	}
 
-	private void visitItems(List<IRepositoryItem> repositoryItems) {
+	private void visitItems(Collection<IRepositoryItem> repositoryItems) {
 		String root = jarPath;
 		InputStream is = null;
 		BufferedInputStream bis = null;
@@ -108,7 +107,7 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 		}
 	}
 
-	private void readJarStream(List<IRepositoryItem> repositoryItems, String root, JarInputStream jarIS) throws IOException {
+	private void readJarStream(Collection<IRepositoryItem> repositoryItems, String root, JarInputStream jarIS) throws IOException {
 		JarEntry entry = jarIS.getNextJarEntry();
 
 		while (entry != null) {
@@ -138,7 +137,7 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 		}
 	}
 
-	private void createItem(List<IRepositoryItem> repositoryItems, URL root, JarEntry entry) {
+	private void createItem(Collection<IRepositoryItem> repositoryItems, URL root, JarEntry entry) {
 		try {
 			String pUrl = root.toString() + entry.getName();
 			IRepositoryItem repositoryItem = ItemHandler.registerItem(new URL(pUrl), JarRoot.this, repository);
