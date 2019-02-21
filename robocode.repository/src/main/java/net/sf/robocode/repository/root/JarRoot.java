@@ -108,26 +108,11 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 	}
 
 	private void readJarStream(Collection<IRepositoryItem> repositoryItems, String root, JarInputStream jarIS) throws IOException {
-		JarEntry entry = jarIS.getNextJarEntry();
-
 		final URL rootURL = new URL(root + "!/");
 
-		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
-			@Override
-			public ByteBuffer get(String binaryName) {
-				String fileName = binaryName + ".class";
-				URL url;
-				try {
-					url = new URL(rootURL.getProtocol(), rootURL.getHost(), rootURL.getPort(), rootURL.getPath() + fileName);
-				} catch (MalformedURLException e) {
-					Logger.logError(e);
-					return null;
-				}
+		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = createMainClassPredicate(rootURL);
 
-				return readClassFile(url);
-			}
-		});
-
+		JarEntry entry = jarIS.getNextJarEntry();
 		while (entry != null) {
 			String fullName = entry.getName();
 			String name = fullName.toLowerCase();
@@ -158,14 +143,6 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 			}
 			entry = jarIS.getNextJarEntry();
 		}
-	}
-
-	private static ByteBuffer readClassFile(final URL url) {
-		return AccessController.doPrivileged(new PrivilegedAction<ByteBuffer>() {
-			public ByteBuffer run() {
-				return ClassFileReader.readClassFileFromURL(url);
-			}
-		});
 	}
 
 	private void createItem(Collection<IRepositoryItem> repositoryItems, URL root, JarEntry entry) {
@@ -208,5 +185,31 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 
 	public void extractJAR() {
 		JarExtractor.extractJar(rootURL);
+	}
+
+	private static ClassAnalyzer.RobotMainClassPredicate createMainClassPredicate(final URL rootURL) {
+		return new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
+			@Override
+			public ByteBuffer get(String binaryName) {
+				String fileName = binaryName + ".class";
+				URL url;
+				try {
+					url = new URL(rootURL.getProtocol(), rootURL.getHost(), rootURL.getPort(), rootURL.getPath() + fileName);
+				} catch (MalformedURLException e) {
+					Logger.logError(e);
+					return null;
+				}
+
+				return readClassFile(url);
+			}
+		});
+	}
+
+	private static ByteBuffer readClassFile(final URL url) {
+		return AccessController.doPrivileged(new PrivilegedAction<ByteBuffer>() {
+			public ByteBuffer run() {
+				return ClassFileReader.readClassFileFromURL(url);
+			}
+		});
 	}
 }
