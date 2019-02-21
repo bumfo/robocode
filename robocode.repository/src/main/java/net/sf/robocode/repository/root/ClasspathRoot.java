@@ -19,6 +19,7 @@ import java.io.FileFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -63,7 +64,8 @@ public final class ClasspathRoot extends BaseRoot implements IRepositoryRoot {
 	}
 
 	private void visitDirectory(File path, final List<IRepositoryItem> items, final List<Long> itemsLastModification) {
-		
+		final HashSet<IRepositoryItem> set = new HashSet<IRepositoryItem>();
+
 		path.listFiles(
 				new FileFilter() {
 			public boolean accept(File pathname) {
@@ -71,7 +73,8 @@ public final class ClasspathRoot extends BaseRoot implements IRepositoryRoot {
 					try {
 						IRepositoryItem repositoryItem = ItemHandler.registerItem(pathname.toURI().toURL(),
 								ClasspathRoot.this, repository);
-						if (repositoryItem != null) {
+						if (repositoryItem != null && !set.contains(repositoryItem)) {
+							set.add(repositoryItem);
 							items.add(repositoryItem);
 							itemsLastModification.add(pathname.lastModified());
 						}
