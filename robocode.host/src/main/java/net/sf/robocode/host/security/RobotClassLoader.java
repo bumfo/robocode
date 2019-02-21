@@ -258,22 +258,24 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 				}
 				if (resolve) {
 					long t1 = System.nanoTime();
+//					resolveAllLegacy();
 
-					// resolve methods to see more referenced classes
-					robotClass.getMethods();
+					ClassAnalyzer.RobotReferencedClassesResolver resolver = new ClassAnalyzer.RobotReferencedClassesResolver(mainClassPredicate.getFn());
 
-					// iterate thru dependencies until we didn't found any new
-					HashSet<String> clone;
 
-					do {
-						clone = new HashSet<String>(referencedClasses);
-						for (String reference : clone) {
+
+					for (String reference : resolver.resolve(fullClassName)) {
+						reference = reference.replace('/', '.');
+
+						if (reference.indexOf("[") != 0) {
+							referencedClasses.add(reference);
+
 							testPackages(reference);
 							if (!isSystemClass(reference)) {
 								loadClass(reference, true);
 							}
 						}
-					} while (referencedClasses.size() != clone.size());
+					}
 
 					System.out.println("resolve references " + getURLs()[0] + fullClassName + " takes " + (System.nanoTime() - t1) / 1000000.0 + "ms");
 				}
@@ -285,6 +287,24 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 			throw new ClassNotFoundException(e.getMessage(), e);
 		}
 		return robotClass;
+	}
+
+	private void resolveAllLegacy() throws ClassNotFoundException {
+		// resolve methods to see more referenced classes
+		robotClass.getMethods();
+
+		// iterate thru dependencies until we didn't found any new
+		HashSet<String> clone;
+
+		do {
+			clone = new HashSet<String>(referencedClasses);
+			for (String reference : clone) {
+				testPackages(reference);
+				if (!isSystemClass(reference)) {
+					loadClass(reference, true);
+				}
+			}
+		} while (referencedClasses.size() != clone.size());
 	}
 
 	public IBasicRobot createRobotInstance() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
