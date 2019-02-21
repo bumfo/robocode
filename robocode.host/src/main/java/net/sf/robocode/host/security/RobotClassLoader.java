@@ -179,7 +179,11 @@ public class RobotClassLoader extends URLClassLoader implements IRobotClassLoade
 
 		try {
 			if (robotClass == null) {
+				long t0 = System.nanoTime();
+
 				robotClass = loadClass(fullClassName, resolve);
+
+				System.out.println("loadClass " + getURLs()[0] + fullClassName + " takes " + (System.nanoTime() - t0) / 1000000.0 + "ms");
 
 				if (!IBasicRobot.class.isAssignableFrom(robotClass)) {
 					// that's not robot
