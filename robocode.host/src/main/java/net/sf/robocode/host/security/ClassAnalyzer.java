@@ -15,7 +15,10 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -68,7 +71,7 @@ class ClassAnalyzer {
 		}
 	}
 
-	private static final class ClassInfo {
+	private static class ClassInfo {
 		String[] utf8s;
 		int[] classNames;
 
@@ -77,7 +80,7 @@ class ClassAnalyzer {
 			classNames = new int[constant_pool_count];
 		}
 
-		String getClassName(int info_index) {
+		private String getClassName(int info_index) {
 			return utf8s[classNames[info_index]];
 		}
 	}
@@ -161,7 +164,7 @@ class ClassAnalyzer {
 			 u2 name_index;
 			 }
 			 */
-				case CONSTANT_Class: {
+			case CONSTANT_Class: {
 					int name_index = in.readUnsignedShort();
 
 					classNameIndexes.add(name_index);
@@ -192,10 +195,10 @@ class ClassAnalyzer {
 			 u2 name_and_type_index;
 			 }
 			 */
-				case CONSTANT_Fieldref:
-				case CONSTANT_Methodref:
-				case CONSTANT_InterfaceMethodref:
-				case CONSTANT_InvokeDynamic: {
+			case CONSTANT_Fieldref:
+			case CONSTANT_Methodref:
+			case CONSTANT_InterfaceMethodref:
+			case CONSTANT_InvokeDynamic: {
 					in.readUnsignedShort(); // class index
 					in.readUnsignedShort(); // name and type index
 				}
@@ -208,7 +211,7 @@ class ClassAnalyzer {
 			 u2 reference_index;
 			 }
 			 */
-				case CONSTANT_MethodHandle: {
+			case CONSTANT_MethodHandle: {
 					in.readUnsignedByte(); //reference_kind
 					in.readUnsignedShort(); // reference_index
 				}
@@ -224,8 +227,8 @@ class ClassAnalyzer {
 			 u2 descriptor_index;
 			 }
 			 */
-				case CONSTANT_String:
-				case CONSTANT_MethodType: {
+			case CONSTANT_String:
+			case CONSTANT_MethodType: {
 					in.readUnsignedShort();
 				}
 				break;
@@ -240,8 +243,8 @@ class ClassAnalyzer {
 			 u4 bytes;
 			 }
 			 */
-				case CONSTANT_Integer:
-				case CONSTANT_Float: {
+			case CONSTANT_Integer:
+			case CONSTANT_Float: {
 					in.readInt(); // bytes
 				}
 				break;
@@ -260,8 +263,8 @@ class ClassAnalyzer {
 			 All 8-byte constants take up two entries in the constant_pool table of the class file. If a CONSTANT_Long_info or CONSTANT_Double_info structure is the item in the constant_pool table at index n, then the next usable item in the pool is located at index n+2. The constant_pool index n+1 must be valid but is considered unusable.2
 			 */
 
-				case CONSTANT_Long:
-				case CONSTANT_Double: {
+			case CONSTANT_Long:
+			case CONSTANT_Double: {
 					in.readInt(); // high bytes
 					in.readInt(); // low bytes
 					i++; // see "all 8-byte..." comment above.
@@ -275,7 +278,7 @@ class ClassAnalyzer {
 			 u2 descriptor_index;
 			 }
 			 */
-				case CONSTANT_NameAndType: {
+			case CONSTANT_NameAndType: {
 					in.readUnsignedShort(); // name index
 					in.readUnsignedShort(); // descriptor index
 				}
@@ -288,7 +291,7 @@ class ClassAnalyzer {
 			 u1 bytes[length];
 			 }
 			 */
-				case CONSTANT_Utf8: {
+			case CONSTANT_Utf8: {
 					String utf8_string = in.readUTF();
 
 					info.utf8s[i] = utf8_string;
@@ -303,47 +306,6 @@ class ClassAnalyzer {
 		ByteBuffer get(String binaryName);
 	}
 
-	public static final class RobotReferencedClassesResolver {
-		private final ByteBufferFunction fn;
-		private final Set<String> visited = new LinkedHashSet<String>();
-
-		public RobotReferencedClassesResolver(ByteBufferFunction fn) {
-			this.fn = fn;
-		}
-
-		private void visit(String binaryName) {
-			if (!visited.add(binaryName)) {
-				return;
-			}
-
-			ByteBuffer classFile = fn.get(binaryName);
-
-			if (classFile == null) return;
-
-			List<Integer> classNameIndexes = new ArrayList<Integer>();
-			ClassInfo info;
-
-			try {
-				DataInputStream in = new DataInputStream(new ByteArrayInputStream(classFile.array(), 0, classFile.limit()));
-				info = parseClassFile(classNameIndexes, in);
-				if (info == null) return;
-
-				for (int utf8_index : info.classNames) {
-					if (utf8_index != 0) {
-						visit(info.utf8s[utf8_index]);
-					}
-				}
-			} catch (IOException ignore) {
-			}
-		}
-
-		public Set<String> resolve(String name) {
-			visit(name.replace('.', '/'));
-
-			return visited;
-		}
-	}
-
 	public static final class RobotMainClassPredicate {
 		private final HashMap<String, Boolean> cache = new HashMap<String, Boolean>();
 		private final HashMap<String, Boolean> isConcrete = new HashMap<String, Boolean>();
@@ -351,10 +313,6 @@ class ClassAnalyzer {
 
 		public RobotMainClassPredicate(ByteBufferFunction fn) {
 			this.fn = fn;
-		}
-
-		public ByteBufferFunction getFn() {
-			return fn;
 		}
 
 		private boolean calcAssignableToRobot(String binaryName) {
