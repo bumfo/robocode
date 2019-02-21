@@ -8,6 +8,8 @@
 package net.sf.robocode.repository.root;
 
 
+import net.sf.robocode.host.security.ClassAnalyzer;
+import net.sf.robocode.host.security.ClassFileReader;
 import net.sf.robocode.io.FileUtil;
 import net.sf.robocode.io.Logger;
 import net.sf.robocode.io.URLJarCollector;
@@ -25,6 +27,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -105,8 +110,27 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 	private void readJarStream(Collection<IRepositoryItem> repositoryItems, String root, JarInputStream jarIS) throws IOException {
 		JarEntry entry = jarIS.getNextJarEntry();
 
+		final URL rootURL = new URL(root + "!/");
+
+		ClassAnalyzer.RobotMainClassPredicate mainClassPredicate = new ClassAnalyzer.RobotMainClassPredicate(new ClassAnalyzer.ByteBufferFunction() {
+			@Override
+			public ByteBuffer get(String binaryName) {
+				String fileName = binaryName + ".class";
+				URL url;
+				try {
+					url = new URL(rootURL.getProtocol(), rootURL.getHost(), rootURL.getPort(), rootURL.getPath() + fileName);
+				} catch (MalformedURLException e) {
+					Logger.logError(e);
+					return null;
+				}
+
+				return readClassFile(url);
+			}
+		});
+
 		while (entry != null) {
-			String name = entry.getName().toLowerCase();
+			String fullName = entry.getName();
+			String name = fullName.toLowerCase();
 
 			if (!entry.isDirectory()) {
 				if (name.contains(".data/") && !name.contains(".robotcache/")) {
@@ -117,19 +141,31 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 
 						try {
 							inner = new JarInputStream(jarIS);
-							readJarStream(repositoryItems, "jar:jar" + root + JarJar.SEPARATOR + entry.getName(), inner);
+							readJarStream(repositoryItems, "jar:jar" + root + JarJar.SEPARATOR + fullName, inner);
 						} finally {
 							if (inner != null) {
 								inner.closeEntry();								
 							}
 						}
+					} else if (name.endsWith(".class")) {
+						if (mainClassPredicate.isMainClassBinary(fullName.substring(0, fullName.length() - 6))) {
+							createItem(repositoryItems, rootURL, entry);
+						}
 					} else {
-						createItem(repositoryItems, new URL(root + "!/"), entry);
+						createItem(repositoryItems, rootURL, entry);
 					}
 				}
 			}
 			entry = jarIS.getNextJarEntry();
 		}
+	}
+
+	private static ByteBuffer readClassFile(final URL url) {
+		return AccessController.doPrivileged(new PrivilegedAction<ByteBuffer>() {
+			public ByteBuffer run() {
+				return ClassFileReader.readClassFileFromURL(url);
+			}
+		});
 	}
 
 	private void createItem(Collection<IRepositoryItem> repositoryItems, URL root, JarEntry entry) {

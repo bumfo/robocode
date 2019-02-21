@@ -387,7 +387,7 @@ public final class ClassAnalyzer {
 			return res;
 		}
 
-		private boolean isMainClassInternal(String binaryName) {
+		public boolean isMainClassBinary(String binaryName) {
 			if (isAssignableToRobot(binaryName)) {
 				Boolean concrete = isConcrete.get(binaryName);
 				if (concrete == null) return false;
@@ -398,7 +398,7 @@ public final class ClassAnalyzer {
 		}
 
 		public boolean isMainClass(String name) {
-			return isMainClassInternal(name.replace('.', '/'));
+			return isMainClassBinary(name.replace('.', '/'));
 		}
 	}
 }
