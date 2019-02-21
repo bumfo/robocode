@@ -73,7 +73,7 @@ public final class JarRoot extends BaseRoot implements IRepositoryRoot {
 			repository.removeItemsFromRoot(this);
 			this.lastModified = lastModified;
 
-			Set<IRepositoryItem> repositoryItems = new HashSet<IRepositoryItem>();
+			Set<IRepositoryItem> repositoryItems = new LinkedHashSet<IRepositoryItem>();
 
 			visitItems(repositoryItems);
 			for (IRepositoryItem repositoryItem : repositoryItems) {
