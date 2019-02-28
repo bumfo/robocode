@@ -19,6 +19,7 @@ import net.sf.robocode.repository.IRepositoryManager;
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
+import java.lang.reflect.ReflectPermission;
 import java.net.MalformedURLException;
 import java.security.*;
 import java.util.*;
@@ -172,6 +173,15 @@ public class RobocodeSecurityPolicy extends Policy {
 				return impliesRobotPackageAccess(robotProxy, name.substring(21));
 			} else if (name.equals("accessDeclaredMembers")) {
 				return true;
+			}
+		}
+
+		if (perm instanceof ReflectPermission) {
+			if (perm.getName().equals("suppressAccessChecks")) {
+				String botName = robotProxy.getStatics().getName();
+				if (botName.startsWith("aaa.light.LightBot*") || botName.startsWith("aaa.light.LightBot ")) {
+					return true;
+				}
 			}
 		}
 
