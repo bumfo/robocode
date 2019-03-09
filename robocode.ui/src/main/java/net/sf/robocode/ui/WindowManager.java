@@ -33,10 +33,9 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.*;
 import java.util.AbstractMap.SimpleImmutableEntry;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map.Entry;
 
 
@@ -160,6 +159,28 @@ public class WindowManager implements IWindowManagerExt {
 			WindowUtil.setStatusLabel(frame.getStatusLabel());
 
 			frame.checkUpdateOnStart();
+
+			FileDropHandler handler = frame.getFileDropHandler();
+			if (handler.getConsumer() == null) {
+				handler.setConsumer(new FileDropHandler.FileListConsumer() {
+					@Override
+					public void accept(List<File> files) throws IOException {
+						RobotJarFilter filter = new RobotJarFilter();
+
+						List<File> accepted = new ArrayList<File>();
+
+						for (File file : files) {
+							if (filter.accept(file.getParentFile(), file.getName())) {
+								accepted.add(file);
+							}
+						}
+
+						if (accepted.isEmpty()) throw new IOException("Nothing to import");
+
+						importRobots(accepted);
+					}
+				});
+			}
 
 		} else {
 			frame.setVisible(false);
@@ -489,76 +510,65 @@ public class WindowManager implements IWindowManagerExt {
 	public void showImportRobotDialog() {
 		File[] files = showNativeDialogMultipleFile("Select the robot .jar file to copy to " + repositoryManager.getRobotsDirectory(),
 				FileDialog.LOAD, null, null,
-				new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						if (name.equals("robocode.jar")) {
-							return false;
-						}
-						int idx = name.lastIndexOf('.');
-
-						String extension = "";
-
-						if (idx >= 0) {
-							extension = name.substring(idx);
-						}
-						return extension.equalsIgnoreCase(".jar") || extension.equalsIgnoreCase(".zip");
-					}
-				});
+			new RobotJarFilter());
 		if (files != null) {
-			// for (File file : files) {
-			// 	tryImportRobot(file);
-			// }
-
-			int skipped = 0;
-
-			List<Entry<File, File>> todo = new ArrayList<Entry<File, File>>();
-			List<File> to_overwrite = new ArrayList<File>();
-			List<Entry<File, File>> overwrite = new ArrayList<Entry<File, File>>();
-
-			for (File inputFile : files) {
-				File outputFile = prepareImportRobot(inputFile);
-				if (inputFile.equals(outputFile)) {
-					skipped += 1;
-					continue;
-				}
-				if (outputFile.exists()) {
-					to_overwrite.add(outputFile);
-					overwrite.add(new SimpleImmutableEntry<File, File>(inputFile, outputFile));
-					continue;
-				}
-				todo.add(new SimpleImmutableEntry<File, File>(inputFile, outputFile));
-			}
-
-			int suc = 0;
-			List<Exception> exceptions = new ArrayList<Exception>();
-
-			if (!todo.isEmpty()) {
-				exceptions.addAll(importRobots(todo));
-				suc += todo.size();
-			}
-
-			if (!overwrite.isEmpty()) {
-				if (JOptionPane.showConfirmDialog(getRobocodeFrame(), to_overwrite + " already exists.  Overwrite?",
-					"Warning", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
-					skipped += overwrite.size();
-				} else {
-					exceptions.addAll(importRobots(overwrite));
-					suc += overwrite.size();
-				}
-			}
-
-			suc -= exceptions.size();
-
-			String exceptionMsg = exceptions.size() == 0 ? "" : String.format("Exceptions: %s", exceptions);
-			String msg = String.format(
-				"%d Robots imported successfully, %d skipped, %d failed. %s", suc, skipped, exceptions.size(), exceptionMsg);
-
-			JOptionPane.showMessageDialog(getRobocodeFrame(), msg);
+			importRobots(Arrays.asList(files));
 		}
 	}
 
-	private List<Exception> importRobots(List<Entry<File, File>> todo) {
+	private void importRobots(List<File> files) {
+		// for (File file : files) {
+		// 	tryImportRobot(file);
+		// }
+
+		int skipped = 0;
+
+		List<Entry<File, File>> todo = new ArrayList<Entry<File, File>>();
+		List<File> to_overwrite = new ArrayList<File>();
+		List<Entry<File, File>> overwrite = new ArrayList<Entry<File, File>>();
+
+		for (File inputFile : files) {
+			File outputFile = prepareImportRobot(inputFile);
+			if (inputFile.equals(outputFile)) {
+				skipped += 1;
+				continue;
+			}
+			if (outputFile.exists()) {
+				to_overwrite.add(outputFile);
+				overwrite.add(new SimpleImmutableEntry<File, File>(inputFile, outputFile));
+				continue;
+			}
+			todo.add(new SimpleImmutableEntry<File, File>(inputFile, outputFile));
+		}
+
+		int suc = 0;
+		List<Exception> exceptions = new ArrayList<Exception>();
+
+		if (!todo.isEmpty()) {
+			exceptions.addAll(importRobotsImpl(todo));
+			suc += todo.size();
+		}
+
+		if (!overwrite.isEmpty()) {
+			if (JOptionPane.showConfirmDialog(getRobocodeFrame(), to_overwrite + " already exists.  Overwrite?",
+				"Warning", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION) {
+				skipped += overwrite.size();
+			} else {
+				exceptions.addAll(importRobotsImpl(overwrite));
+				suc += overwrite.size();
+			}
+		}
+
+		suc -= exceptions.size();
+
+		String exceptionMsg = exceptions.size() == 0 ? "" : String.format("Exceptions: %s", exceptions);
+		String msg = String.format(
+			"%d Robots imported successfully, %d skipped, %d failed. %s", suc, skipped, exceptions.size(), exceptionMsg);
+
+		JOptionPane.showMessageDialog(getRobocodeFrame(), msg);
+	}
+
+	private List<Exception> importRobotsImpl(List<Entry<File, File>> todo) {
 		List<Exception> exceptions = new ArrayList<Exception>();
 
 		for (Entry<File, File> pair : todo) {
@@ -753,6 +763,23 @@ public class WindowManager implements IWindowManagerExt {
 		if (isGUIEnabled()) {
 			showRobocodeFrame(visible, false);
 			showResults = visible;
+		}
+	}
+
+	private static class RobotJarFilter implements FilenameFilter {
+		@Override
+		public boolean accept(File dir, String name) {
+			if (name.equals("robocode.jar")) {
+				return false;
+			}
+			int idx = name.lastIndexOf('.');
+
+			String extension = "";
+
+			if (idx >= 0) {
+				extension = name.substring(idx);
+			}
+			return extension.equalsIgnoreCase(".jar") || extension.equalsIgnoreCase(".zip");
 		}
 	}
 }
