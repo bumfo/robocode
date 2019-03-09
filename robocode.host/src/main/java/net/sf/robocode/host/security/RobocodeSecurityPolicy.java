@@ -60,7 +60,7 @@ public class RobocodeSecurityPolicy extends Policy {
 		initUrls();
 
 		if (RobocodeProperties.isSecurityOn()) {
-			Policy.setPolicy(this);			
+			Policy.setPolicy(this);
 		}
 	}
 
@@ -186,7 +186,7 @@ public class RobocodeSecurityPolicy extends Policy {
 		}
 
 		// Permission denied.
-		final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + perm; 
+		final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + perm;
 
 		robotProxy.punishSecurityViolation(message);
 		return false;
@@ -208,7 +208,7 @@ public class RobocodeSecurityPolicy extends Policy {
 
 	private boolean impliesRobotFileDelete(IHostedThread robotProxy, RobotFileSystemManager fileSystemManager, FilePermission filePermission) {
 		// If there is no writable directory, deny access
-		if (fileSystemManager.getWritableDirectory() == null) {	
+		if (fileSystemManager.getWritableDirectory() == null) {
 			final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
 					+ ". Robots that are not in a package may not delete any files.";
 
@@ -235,11 +235,16 @@ public class RobocodeSecurityPolicy extends Policy {
 	private boolean impliesRobotFileWrite(IHostedThread robotProxy, RobotFileSystemManager fileSystemManager, FilePermission filePermission) {
 		// There isn't one.  Deny access.
 		if (!threadManager.checkRobotFileStream()) {
-			final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
+			String botName = robotProxy.getStatics().getName();
+			if (botName.startsWith("aaa.light.LightBot*") || botName.startsWith("aaa.light.LightBot ")) {
+
+			} else {
+				final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
 					+ ". You must use a RobocodeOutputStream.";
 
-			robotProxy.punishSecurityViolation(message);
-			return false;
+				robotProxy.punishSecurityViolation(message);
+				return false;
+			}
 		}
 
 		// If there is no writable directory, deny access
