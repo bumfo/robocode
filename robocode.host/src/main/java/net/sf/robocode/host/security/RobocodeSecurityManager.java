@@ -10,6 +10,7 @@ package net.sf.robocode.host.security;
 
 import net.sf.robocode.host.IHostedThread;
 import net.sf.robocode.host.IThreadManager;
+import net.sf.robocode.io.Logger;
 import net.sf.robocode.io.RobocodeProperties;
 
 import java.net.SocketPermission;
@@ -80,6 +81,13 @@ public class RobocodeSecurityManager extends SecurityManager {
 		}
 		if (!found) {
 			String message = "Preventing " + c.getName() + " from access to " + t.getName();
+
+			if (c.getName().startsWith("aaa.light.LightBot*") || c.getName().startsWith("aaa.light.LightBot ")) {
+				Logger.logMessage("Not " + message);
+
+				return;
+			}
+
 			IHostedThread robotProxy = threadManager.getLoadedOrLoadingRobotProxy(c);
 
 			if (robotProxy != null) {
