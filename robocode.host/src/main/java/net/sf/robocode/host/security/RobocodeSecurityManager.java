@@ -81,7 +81,7 @@ public class RobocodeSecurityManager extends SecurityManager {
 		if (!found) {
 			String message = "Preventing " + c.getName() + " from access to " + t.getName();
 
-			if (c.getName().startsWith("aaa.light.LightBot*") || c.getName().startsWith("aaa.light.LightBot ")) {
+			if (RobocodeSecurityPolicy.isDataLoggingBot(c.getName())) {
 				Logger.logMessage("Not " + message);
 
 				return;
