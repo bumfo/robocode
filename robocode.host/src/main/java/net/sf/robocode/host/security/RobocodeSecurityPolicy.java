@@ -179,7 +179,7 @@ public class RobocodeSecurityPolicy extends Policy {
 		if (perm instanceof ReflectPermission) {
 			if (perm.getName().equals("suppressAccessChecks")) {
 				String botName = robotProxy.getStatics().getName();
-				if (botName.startsWith("aaa.light.LightBot*") || botName.startsWith("aaa.light.LightBot ")) {
+				if (isDataLoggingBot(botName)) {
 					return true;
 				}
 			}
@@ -236,7 +236,7 @@ public class RobocodeSecurityPolicy extends Policy {
 		// There isn't one.  Deny access.
 		if (!threadManager.checkRobotFileStream()) {
 			String botName = robotProxy.getStatics().getName();
-			if (botName.startsWith("aaa.light.LightBot*") || botName.startsWith("aaa.light.LightBot ")) {
+			if (isDataLoggingBot(botName)) {
 
 			} else {
 				final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
@@ -337,5 +337,20 @@ public class RobocodeSecurityPolicy extends Policy {
 		} catch (IOException e) {
 			Logger.logError(e);
 		}
+	}
+
+
+	static boolean isDataLoggingBot(String botName) {
+		String[] names = {
+			"aaa.light.LightBot"
+		};
+
+		for (String name : names) {
+			if (botName.startsWith(name + "*") || botName.startsWith(name + " ")) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
