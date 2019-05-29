@@ -342,7 +342,8 @@ public class RobocodeSecurityPolicy extends Policy {
 
 	static boolean isDataLoggingBot(String botName) {
 		String[] names = {
-			"aaa.light.LightBot"
+			"aaa.light.LightBot",
+			"aaa.g.LightG",
 		};
 
 		for (String name : names) {
