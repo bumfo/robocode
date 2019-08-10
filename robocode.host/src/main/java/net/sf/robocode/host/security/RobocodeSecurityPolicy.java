@@ -19,6 +19,7 @@ import net.sf.robocode.repository.IRepositoryManager;
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
+import java.lang.reflect.ReflectPermission;
 import java.net.MalformedURLException;
 import java.security.*;
 import java.util.*;
@@ -59,7 +60,7 @@ public class RobocodeSecurityPolicy extends Policy {
 		initUrls();
 
 		if (RobocodeProperties.isSecurityOn()) {
-			Policy.setPolicy(this);			
+			Policy.setPolicy(this);
 		}
 	}
 
@@ -175,8 +176,17 @@ public class RobocodeSecurityPolicy extends Policy {
 			}
 		}
 
+		if (perm instanceof ReflectPermission) {
+			if (perm.getName().equals("suppressAccessChecks")) {
+				String botName = robotProxy.getStatics().getName();
+				if (isDataLoggingBot(botName)) {
+					return true;
+				}
+			}
+		}
+
 		// Permission denied.
-		final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + perm; 
+		final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + perm;
 
 		robotProxy.punishSecurityViolation(message);
 		return false;
@@ -198,7 +208,7 @@ public class RobocodeSecurityPolicy extends Policy {
 
 	private boolean impliesRobotFileDelete(IHostedThread robotProxy, RobotFileSystemManager fileSystemManager, FilePermission filePermission) {
 		// If there is no writable directory, deny access
-		if (fileSystemManager.getWritableDirectory() == null) {	
+		if (fileSystemManager.getWritableDirectory() == null) {
 			final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
 					+ ". Robots that are not in a package may not delete any files.";
 
@@ -225,11 +235,16 @@ public class RobocodeSecurityPolicy extends Policy {
 	private boolean impliesRobotFileWrite(IHostedThread robotProxy, RobotFileSystemManager fileSystemManager, FilePermission filePermission) {
 		// There isn't one.  Deny access.
 		if (!threadManager.checkRobotFileStream()) {
-			final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
+			String botName = robotProxy.getStatics().getName();
+			if (isDataLoggingBot(botName)) {
+
+			} else {
+				final String message = "Preventing " + robotProxy.getStatics().getName() + " from access: " + filePermission
 					+ ". You must use a RobocodeOutputStream.";
 
-			robotProxy.punishSecurityViolation(message);
-			return false;
+				robotProxy.punishSecurityViolation(message);
+				return false;
+			}
 		}
 
 		// If there is no writable directory, deny access
@@ -322,5 +337,21 @@ public class RobocodeSecurityPolicy extends Policy {
 		} catch (IOException e) {
 			Logger.logError(e);
 		}
+	}
+
+
+	static boolean isDataLoggingBot(String botName) {
+		String[] names = {
+			"aaa.light.LightBot",
+			"aaa.g.LightG",
+		};
+
+		for (String name : names) {
+			if (botName.startsWith(name + "*") || botName.startsWith(name + " ")) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

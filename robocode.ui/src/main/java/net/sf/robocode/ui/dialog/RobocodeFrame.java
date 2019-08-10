@@ -10,8 +10,8 @@ package net.sf.robocode.ui.dialog;
 
 import net.sf.robocode.battle.IBattleManager;
 import net.sf.robocode.recording.IRecordManager;
-import net.sf.robocode.settings.ISettingsManager;
 import net.sf.robocode.settings.ISettingsListener;
+import net.sf.robocode.settings.ISettingsManager;
 import net.sf.robocode.ui.*;
 import net.sf.robocode.ui.battleview.BattleView;
 import net.sf.robocode.ui.battleview.InteractiveHandler;
@@ -31,8 +31,8 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 
 /**
@@ -94,6 +94,7 @@ public class RobocodeFrame extends JFrame {
 	private final MenuBar menuBar;
 
 	final List<RobotButton> robotButtons = new ArrayList<RobotButton>();
+	private FileDropHandler fileDropHandler;
 
 	public RobocodeFrame(ISettingsManager properties,
 			IWindowManager windowManager,
@@ -562,6 +563,10 @@ public class RobocodeFrame extends JFrame {
 			getReplayButton().setEnabled(false);
 			exitOnClose = false;
 		}
+
+		fileDropHandler = new FileDropHandler();
+
+		this.setTransferHandler(fileDropHandler);
 	}
 
 	private void pauseResumeButtonActionPerformed() {
@@ -683,6 +688,10 @@ public class RobocodeFrame extends JFrame {
 		int tps = getTpsFromSlider();
 
 		return "  " + ((tps == MAX_TPS) ? "max" : "" + tps) + "  ";
+	}
+
+	public FileDropHandler getFileDropHandler() {
+		return fileDropHandler;
 	}
 
 	private class EventHandler implements ComponentListener, ActionListener, ContainerListener, WindowListener,
@@ -1008,4 +1017,5 @@ public class RobocodeFrame extends JFrame {
 			}
 		}
 	}
+
 }
