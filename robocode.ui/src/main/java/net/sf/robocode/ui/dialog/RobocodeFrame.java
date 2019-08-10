@@ -32,6 +32,8 @@ import java.awt.event.*;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
+import java.lang.reflect.Method;
+import java.util.*;
 import java.util.List;
 import java.util.*;
 
@@ -539,6 +541,14 @@ public class RobocodeFrame extends JFrame {
 	 * Initialize the class.
 	 */
 	private void initialize() {
+		try {
+			Class<?> util = Class.forName("com.apple.eawt.FullScreenUtilities");
+			Method method = util.getMethod("setWindowCanFullScreen", Window.class, Boolean.TYPE);
+			method.invoke(util, this, true);
+		} catch (Exception ignore) {
+			// no full screen support
+		}
+
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setTitle("Robocode");
 		setIconImage(ImageUtil.getImage("/net/sf/robocode/ui/icons/robocode-icon.png"));
@@ -1022,5 +1032,4 @@ public class RobocodeFrame extends JFrame {
 			}
 		}
 	}
-
 }
