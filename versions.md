@@ -1,4 +1,4 @@
-## Version 1.9.3.7 (14-08-2019)
+## Version 1.9.3.5 (14-08-2019)
 
 ### Bugfixes
 * [Bug-407][]: RobocodeEngine: Can't find robocode.core-1.x.jar
