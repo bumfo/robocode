@@ -42,9 +42,6 @@ public final class ConsoleScrollPane extends JScrollPane {
 
 			table.setFillsViewportHeight(true);
 
-			// table.setOpaque(false);
-			// ((DefaultTableCellRenderer) table.getDefaultRenderer(String.class)).setOpaque(false);
-
 			table.setModel(new ConsoleTableModel(lines));
 			TableColumnModel tcm = table.getColumnModel();
 			tcm.getColumn(0).setPreferredWidth(700);
@@ -137,8 +134,6 @@ public final class ConsoleScrollPane extends JScrollPane {
 
 	public void scrollToBottom() {
 		final JTable table = getTextPane();
-		// int lastIndex = table.getRowCount() - 1;
-		// table.changeSelection(lastIndex, 0, false, false);
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
