@@ -701,7 +701,11 @@ public class RobocodeFrame extends JFrame {
 	private String getTpsFromSliderAsString() {
 		int tps = getTpsFromSlider();
 
-		return "  " + ((tps == MAX_TPS) ? "max" : "" + tps) + "  ";
+		return formatTPS(tps);
+	}
+
+	private String formatTPS(int tps) {
+		return "  " + ((tps >= MAX_TPS) ? "max" : "" + tps) + "  ";
 	}
 
 	public FileDropHandler getFileDropHandler() {
@@ -784,19 +788,24 @@ public class RobocodeFrame extends JFrame {
 
 		public void stateChanged(ChangeEvent e) {
 			if (e.getSource() == getTpsSlider()) {
-				int tps = getTpsFromSlider();
-
-				// TODO refactor
-				if (tps == 0) {
-					battleManager.pauseIfResumedBattle();
-				} else {
-					// Only set desired TPS if it is not set to zero
-					properties.setOptionsBattleDesiredTPS(tps);
-					battleManager.resumeIfPausedBattle(); // TODO causing problems when called from PreferencesViewOptionsTab.storePreferences()
-				}
-
-				tpsLabel.setText(getTpsFromSliderAsString());
+				setTPS(getTpsFromSlider(), false);
 			}
+		}
+	}
+
+	public void setTPS(int tps, boolean setSlider) {
+		// TODO refactor
+		if (tps == 0) {
+			battleManager.pauseIfResumedBattle();
+		} else {
+			// Only set desired TPS if it is not set to zero
+			properties.setOptionsBattleDesiredTPS(tps);
+			battleManager.resumeIfPausedBattle(); // TODO causing problems when called from PreferencesViewOptionsTab.storePreferences()
+		}
+
+		tpsLabel.setText(formatTPS(tps));
+		if (setSlider) {
+			setTpsOnSlider(tps);
 		}
 	}
 
