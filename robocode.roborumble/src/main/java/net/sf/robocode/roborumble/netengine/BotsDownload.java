@@ -39,6 +39,8 @@ import java.util.zip.ZipEntry;
  */
 public class BotsDownload {
 
+	private static final String BOT_NAME_REGEX = "^[\\w.]+[ ][\\w.-]+$";
+
 	// private String internetrepository;
 	private final String botsrepository;
 	private final String participantsfile;
@@ -253,6 +255,12 @@ public class BotsDownload {
 				if (record.indexOf(",") >= 0) {
 					String id = record.substring(record.indexOf(",") + 1).trim();
 					String name = record.substring(0, record.indexOf(",")).trim();
+
+					if (!name.matches(BOT_NAME_REGEX)) {
+						System.out.println("Invalid bot name " + name);
+						continue;
+					}
+
 					String jar = name.replace(' ', '_') + ".jar";
 
 					jars.add(jar);
